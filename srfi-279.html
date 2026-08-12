@@ -97,17 +97,16 @@ will not appear in the final SRFI.</p>
 </p>
 
 <ul>
-  <li> memory debuggers (low-level byte glance,)
-  <li> reflection (programmatic access to (usually) object metadata,)
-  <li> serialization / serializability (storage-oriented data description,)
+  <li> memory debuggers (low-level byte glance),
+  <li> reflection (programmatic access to (usually) object metadata),
+  <li> serialization / serializability (storage-oriented data description),
   <li> and introspection.
 </ul>
 
 <p>
-  Inspectors are cohabitant with REPLs (read-eval-print loops,) these having a long history in Lisps too:
+  Inspectors are cohabitant with REPLs (read-eval-print loops), these having a long history in Lisps too:
   interactive inspection of the object implies that the environment is interactive and REPL-like;
-  and having a REPL with arbitrary computation results implies that one might want to drill down on these results.
-  In detail.
+  and having a REPL with arbitrary computation results implies that one might want to drill down on these results in detail.
 </p>
 
 <p>
@@ -117,7 +116,7 @@ will not appear in the final SRFI.</p>
   highlight the need for procedure inspection;
   <a href="https://srfi.schemers.org/srfi-69/srfi-69.html">SRFI 69: Basic hash tables</a>
   and a whole family of hash table SRFIs provide “introspection” / “reflection” procedures to get meta-information on hash tables;
-  while <a href="https://srfi.schemers.org/srfi-99/srfi-99.html#InspectionLayer">SRFI 99 and R6RS</a> explicitly name their record type querying procedures that: inspection.
+  while <a href="https://srfi.schemers.org/srfi-99/srfi-99.html#InspectionLayer">SRFI 99 and R6RS</a> explicitly name their record-type-querying procedures that: inspection.
   However, all of these efforts are dispersed around and isolated into distinct type-specific SRFIs.
 </p>
 
@@ -129,8 +128,8 @@ will not appear in the final SRFI.</p>
 <p>
   <a href="#spec--properties">inspect-properties</a> and
   <a href="#spec--describe">inspect-describe</a> are two procedures provided by this SRFI.
-  <code>inspect-properties</code> allows previewing the structured key-value (meta)data about an object.
-  While <code>inspect-describe</code> provides simple, human-readable description of an object for display in the REPL or UI (user interface.)
+  <code>inspect-properties</code> allows previewing the structured key-value (meta)data about an object,
+  while <code>inspect-describe</code> provides simple, human-readable description of an object for display in the REPL or UI (user interface).
   A list of useful properties per data type is provided for ease of implementation and consolidation of inspectors.
   Sample implementation is also provided for multiple implementations.
 </p>
@@ -141,8 +140,8 @@ will not appear in the final SRFI.</p>
   There are only two procedures in this SRFI:
   <a href="#spec--properties">inspect-properties</a> and <a href="#spec--describe">inspect-describe</a>.
   These are enough to implement a rich inspector.
-  <code>inspect-properties</code> provides structured data to build the body of inspector from.
-  While <code>inspect-describe</code> is useful in building a quick glance section or UI header.
+  <code>inspect-properties</code> provides structured data to build the body of inspector from,
+  while <code>inspect-describe</code> is useful in building a quick glance section or UI header.
   A potential and conventional inspector UI can thus look like
 </p>
 
@@ -160,7 +159,7 @@ will not appear in the final SRFI.</p>
 
 <p>
   “Non-dotted alist” means an alist where the value of the pair is not its <code>cdr</code>,
-  but rather a second element of the list (<code>cadr</code>.)
+  but rather a second element of the list (<code>cadr</code>).
   This restriction is in place to allow extending the returned list of properties with those beyond the key-value pair.
   Say, by adding UI display details or property setters as third and other elements in the entry.
 </p>
@@ -180,7 +179,7 @@ will not appear in the final SRFI.</p>
 </p>
 
 <p>
-  In case the implementation has not information for a given property, this property should be omitted instead of using some dummy value like <code>#f</code>.
+  In case the implementation has no information for a given property, this property should be omitted instead of using some dummy value like <code>#f</code>.
   This is to ensure that no field is confusing the inspector user about its presence.
 </p>
 
@@ -230,8 +229,8 @@ will not appear in the final SRFI.</p>
   <dd> Parts of an exponentially-encoded real number.
     Sign is one of -1, 0, 1.
     Exponent and mantissa as per IEEE 754.
-    Base is the numeric base the exponential representation relies on (almost always equal to 2.)
-    “real-significand” can be provided as an additional “real-mantissa” alias.
+    Base is the numeric base the exponential representation relies on (almost always equal to 2).
+    “Real-significand” can be provided as an additional “real-mantissa” alias.
   <dt> real-exponent-length → integer, real-mantissa-length → integer
   <dd> Length of respective parts of a real number. Given that all <code>real?</code> numbers have signs, real-sign-length is unnecessary, but can be added if implementors wish so.
   <dt> real-precision → integer
@@ -280,7 +279,7 @@ will not appear in the final SRFI.</p>
   <dd> Conversions of the pair, if it’s a convertible (non-dotted, non-circular) list.
   <dt> 0..N → object
   <dd> Elements of the list inlined into properties.
-    In case the list is dotted, the last element resides in “dotted-last” (above.)
+    In case the list is dotted, the last element resides in “dotted-last” (above).
   <dt> field… → object
   <dd> In case the pair is an alist, its pairs are inlined into properties.
 </dl>
@@ -297,7 +296,7 @@ will not appear in the final SRFI.</p>
   <dd> Value bound to the symbol.
   <dt> symbol-exported? → boolean
   <dd> Whether the symbol is exported from the library it belongs to.
-    While seemingly meaningless as per R7RS, it accommodates for “internal” symbols akin to those of Common Lisp.
+    While seemingly meaningless as per R7RS, it accommodates “internal” symbols akin to those of Common Lisp.
   <dt> symbol-properties → list
   <dd> List of properties attached to the symbol, whenever present.
 </dl>
@@ -390,7 +389,7 @@ will not appear in the final SRFI.</p>
     Procedures can be defined via <a href="https://standards.scheme.org/r7rs-html5/index.html#case-lambda">case-lambda</a> and thus have multiple arities / arglists.
     The symbol value can happen if the procedure accepts rest argument only,
     i.e. <code>(lambda arg ...)</code>.
-    Implementations are encouraged to only return standard-shaped arglists (required + rest,)
+    Implementations are encouraged to only return standard-shaped arglists (required + rest),
     but may return implementation-specific <a href="https://practical-scheme.net/wiliki/schemexref.cgi?Concept%3AExtendedLambdaList">extended lambda lists</a>.
   <dt> procedure-argument-types → [implementation-specific], procedure-return-types → [implementation-specific]
   <dd> Whenever the implementation stores procedure types.
@@ -420,8 +419,8 @@ will not appear in the final SRFI.</p>
 
 <p>
   In case the returned record type is a <a href="https://srfi.schemers.org/srfi-99/srfi-99.html">record type descriptor (RTD) from R6RS / SRFI 99</a>
-  or an equivalent, it might be inspectable too.
-  Possible fields (<code>rtd</code> can be replaced by <code>record-type</code> or other suitable phrase:)
+  or an equivalent, it might be inspectable, too.
+  Possible fields (<code>rtd</code> can be replaced by <code>record-type</code> or other suitable phrase):
 </p>
 
 <dl>
@@ -464,8 +463,8 @@ will not appear in the final SRFI.</p>
   There are several versions of hash tables in Scheme, with <a href="https://srfi.schemers.org/srfi-69/srfi-69.html">SRFI 69: Basic hash tables</a> being the most prevalent.
   And with <a href="https://srfi.schemers.org/srfi-126/srfi-126.html">SRFI 126: R6RS-based hashtables</a> and R6RS itself being an important influence.
   Naming of properties in this sections can rely on either <code>hash-table</code> or <code>hashtable</code> convention.
-  But the <code>hash-table</code> convention is recommended (and used in this specification.)
-  Providing properties with both conventions is an option too.
+  But the <code>hash-table</code> convention is recommended (and used in this specification).
+  Providing properties with both conventions is an option, too.
 </p>
 
 <dl>
@@ -549,8 +548,8 @@ will not appear in the final SRFI.</p>
 </dl>
 
 <p>
-  Bag properties are suggested to have only one pair.
-  To not duplicate work and delegate everything to set properties.
+  Bag properties are suggested to have only one pair in order
+  to not duplicate work and to delegate everything to set properties.
   However, implementations may freely add more bag-specific properties.
 </p>
 
@@ -593,7 +592,7 @@ will not appear in the final SRFI.</p>
 
 <p>
   Prints a human-readable and maximally useful description of the <var>object</var> to <var>port</var>
-  (or <a href="https://standards.scheme.org/r7rs-html5/index.html#current-output-port">current-output-port</a>.)
+  (or <a href="https://standards.scheme.org/r7rs-html5/index.html#current-output-port">current-output-port</a>).
   (The exact definition of “useful” output is left to the implementor.)
   Example of opinionated output from the author’s <a href="https://codeberg.org/aartaka/trivial-inspect">trivial-inspect Common Lisp library</a>, adapted to Scheme:
 </p>
