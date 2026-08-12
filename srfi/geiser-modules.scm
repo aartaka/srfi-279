@@ -1,6 +1,7 @@
 ;;; modules.scm -- module metadata
 
-;; Copyright (C) 2009, 2010, 2011, 2018, 2026 Jose Antonio Ortega Ruiz
+;; SPDX-FileCopyrightText: 2009, 2010, 2011, 2018, 2026 Jose Antonio Ortega Ruiz
+;; SPDX-License-Identifier: BSD-3-Clause
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the Modified BSD License. You should
