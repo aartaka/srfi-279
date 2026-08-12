@@ -230,9 +230,13 @@
                        'input)
                       ((output-port? object)
                        'output)))
-    (port-type ,(if (textual-port? object)
-                    'textual
-                    'binary))
+    (port-type ,(cond
+                 ((port-fileno object)
+                  'file)
+                 ((textual-port? object)
+                  'textual)
+                 (else
+                  'binary)))
     ,@(when/null (port-fileno object)
                  `((port-file-descriptor ,(port-fileno object))))
     (port-line ,(port-line object))
