@@ -94,13 +94,6 @@
     (real-precision 53)
     (real-mantissa-length 53)
     (real-exponent-length 10)
-    (fixnum-most-positive most-positive-fixnum)
-    (fixnum-most-negative most-negative-fixnum)
-    ;; Working under an assumption that Guile floats are C doubles
-    (flonum-least-positive 2.225e-307)
-    (flonum-least-negative -2.225e-307)
-    (flonum-most-positive 179769313486231570814527423731704356798070567525844996598917476803157260780028538760589558632766878171540458953514382464234321326889464182768467546703537516986049910576551282076245490090389328944075868508455133942304583236903222948165808559332123348274797826204144723168738177180919299881250404026184124858368.000000)
-    (flonum-most-negative -179769313486231570814527423731704356798070567525844996598917476803157260780028538760589558632766878171540458953514382464234321326889464182768467546703537516986049910576551282076245490090389328944075868508455133942304583236903222948165808559332123348274797826204144723168738177180919299881250404026184124858368.000000)
     ,@(when/null (integer? object)
                  `((integer-length ,(integer-length object))))
     ,@(when/null (and (integer? object)
@@ -169,8 +162,6 @@
   `((char->integer ,(char->integer object))
     ,@(when/null (char-general-category object)
                  `((char-category ,(char-general-category object))))
-    ;; Unicode limit, untested
-    (char-limit #x10FFFF)
     (char-alphabetic? ,(char-alphabetic? object))
     (char-numeric? ,(char-numeric? object))
     (char-whitespace? ,(char-whitespace? object))
