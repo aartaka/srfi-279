@@ -441,10 +441,6 @@ will not appear in the final SRFI.</p>
 <dl>
   <dt> error-object-message → string, error-object-irritants → list
   <dd> As per <a href="https://standards.scheme.org/r7rs-html5/index.html#error-object-message">R7RS error section</a>.
-  <dt> error-continuable? → boolean
-  <dd> Whether the error is continuable.
-    While this goes against the general “no predicates” ethos of this SRFI,
-    this property is not accessible from the outside world and thus needs special inclusion.
   <dt> error-rtd, condition-rtd → rtd or another representation of error type
   <dt> Record type descriptor, like for records.
     Can be a separate error-specific thing with separate (<code>ertd-</code>, <code>error-record-type-</code>) naming and properties.
