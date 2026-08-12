@@ -165,7 +165,7 @@ will not appear in the final SRFI.</p>
   <dd> A value of either type <var>type1</var> or <var>type2</var>.
 </dl>
 
-<h4 id="spec--properties--object">Object properties</h3>
+<h4 id="spec--properties--object">Object properties</h4>
 
 <dl>
   <dt> id → integer
@@ -180,7 +180,7 @@ will not appear in the final SRFI.</p>
   <dd> Representations of the object as written by <a href="https://standards.scheme.org/r7rs-html5/index.html#6.13.3">standard procedures</a>.
 </dl>
 
-<h4 id="spec--properties--number">Number (number?, complex?, real?, rational?, integer?) properties</h3>
+<h4 id="spec--properties--number">Number (number?, complex?, real?, rational?, integer?) properties</h4>
 
 <dl>
   <dt> imag-part → real, real-part → real
@@ -213,7 +213,7 @@ will not appear in the final SRFI.</p>
     “display-10” is not provided as synonymous with general object “display.”
 </dl>
 
-<h4 id="spec--properties--boolean">Boolean (boolean?) properties</h3>
+<h4 id="spec--properties--boolean">Boolean (boolean?) properties</h4>
 
 <dl>
   <dt> boolean-&gt;integer → integer
@@ -222,7 +222,7 @@ will not appear in the final SRFI.</p>
     An example case: for an implementation written in BASIC <code>boolean-&gt;integer</code> for <code>#t</code> is -1 and not 1.
 </dl>
 
-<h4 id="spec--properties--pair">Pair (pair?) properties</h3>
+<h4 id="spec--properties--pair">Pair (pair?) properties</h4>
 
 <p>
   Pairs in this section are implied to be non-<a href="https://standards.scheme.org/r7rs-html5/index.html#null?">null?</a> lists, possibly dotted, possibly circular.
@@ -246,7 +246,7 @@ will not appear in the final SRFI.</p>
   <dd> In case the pair is an alist, its pairs are inlined into properties.
 </dl>
 
-<h4 id="spec--properties--symbol">Symbol (symbol?) properties</h3>
+<h4 id="spec--properties--symbol">Symbol (symbol?) properties</h4>
 
 <dl>
   <dt> symbol-&gt;string → string
@@ -263,7 +263,7 @@ will not appear in the final SRFI.</p>
   <dd> List of properties attached to the symbol, whenever present.
 </dl>
 
-<h4 id="spec--properties--char">Character (char?) properties</h3>
+<h4 id="spec--properties--char">Character (char?) properties</h4>
 
 <dl>
   <dt> char-&gt;integer → integer
@@ -282,7 +282,7 @@ will not appear in the final SRFI.</p>
   <dd> For <a href="https://standards.scheme.org/r7rs-html5/index.html#char-alphabetic?">all standard predicates</a>.
 </dl>
 
-<h4 id="spec--properties--string">String (string?) properties</h3>
+<h4 id="spec--properties--string">String (string?) properties</h4>
 
 <dl>
   <dt> string-&gt;symbol, string-&gt;list, string-&gt;vector, string-&gt;utf8, string-&gt;number
@@ -296,7 +296,7 @@ will not appear in the final SRFI.</p>
   <dd> Characters of the string, inlined under their indices.
 </dl>
 
-<h4 id="spec--properties--vector">Vector (vector?) properties</h3>
+<h4 id="spec--properties--vector">Vector (vector?) properties</h4>
 
 <dl>
   <dt> vector-length → integer
@@ -307,7 +307,7 @@ will not appear in the final SRFI.</p>
   <dd> Indexed elements of the vector, inlined into the properties.
 </dl>
 
-<h4 id="spec--properties--bytevector">Bytevector (bytevector?) properties</h3>
+<h4 id="spec--properties--bytevector">Bytevector (bytevector?) properties</h4>
 
 <dl>
   <dt> utf8-&gt;string
@@ -316,7 +316,7 @@ will not appear in the final SRFI.</p>
   <dd> Elements of the bytevector, inlined into properties.
 </dl>
 
-<h4 id="spec--properties--port">Port (procedure?) properties</h3>
+<h4 id="spec--properties--port">Port (procedure?) properties</h4>
 
 <dl>
   <dt> port-open? → boolean
@@ -338,7 +338,7 @@ will not appear in the final SRFI.</p>
   <dd> Results of respective standard functions, for string and bytevector output ports.
 </dl>
 
-<h4 id="spec--properties--procedure">Procedure (procedure?) properties</h3>
+<h4 id="spec--properties--procedure">Procedure (procedure?) properties</h4>
 
 <dl>
   <dt> procedure-name → symbol | string
@@ -370,7 +370,7 @@ will not appear in the final SRFI.</p>
     <a href="https://srfi.schemers.org/srfi-259/srfi-259.html">SRFI 259: Tagged procedures with type safety</a>.
 </dl>
 
-<h4 id="spec--properties--record">Record properties</h3>
+<h4 id="spec--properties--record">Record properties</h4>
 
 <dl>
   <dt> record-rtd, record-type → rtd or another implementation-specific representation
@@ -405,7 +405,7 @@ will not appear in the final SRFI.</p>
   Other <a href="https://standards.scheme.org/corrected-r6rs/r6rs-lib-Z-H-7.html#node_sec_6.4">R6RS record inspection properties</a> can be included.
 </p>
 
-<h4 id="spec--properties--exception">Error / exception (error-object? and other exceptions) properties</h3>
+<h4 id="spec--properties--exception">Error / exception (error-object? and other exceptions) properties</h4>
 
 <dl>
   <dt> error-object-message → string, error-object-irritants → list
@@ -419,7 +419,7 @@ will not appear in the final SRFI.</p>
     Can be a separate error-specific thing with separate (<code>ertd-</code>, <code>error-record-type-</code>) naming and properties.
 </dl>
 
-<h4 id="spec--properties--hash">Hash table (hash-table?) properties</h3>
+<h4 id="spec--properties--hash">Hash table (hash-table?) properties</h4>
 
 <p>
   There are several versions of hash tables in Scheme, with <a href="https://srfi.schemers.org/srfi-69/srfi-69.html">SRFI 69: Basic hash tables</a> being the most prevalent.
@@ -446,7 +446,7 @@ will not appear in the final SRFI.</p>
   Hash table effective size, rehash threshold, and rehash multiplier are not listed due to their relative obscurity and lack of implementation practice.
 </p>
 
-<h4 id="spec--properties--numeric-vector">Numeric vectors (s8vector? etc.) properties</h3>
+<h4 id="spec--properties--numeric-vector">Numeric vectors (s8vector? etc.) properties</h4>
 
 <p>
   Defined in <a href="https://srfi.schemers.org/srfi-4/srfi-4.html">SRFI 4: Homogeneous numeric vector datatypes</a>,
@@ -465,7 +465,7 @@ will not appear in the final SRFI.</p>
   <dd> Indexed elements of the vector, inlined into the properties.
 </dl>
 
-<h4 id="spec--properties--box">Box (box?) properties</h3>
+<h4 id="spec--properties--box">Box (box?) properties</h4>
 
 <p>
   Specified in <a href="https://srfi.schemers.org/srfi-111/srfi-111.html">SRFI 111: Boxes</a>,
@@ -483,7 +483,7 @@ will not appear in the final SRFI.</p>
   but may as well be supported by implementations providing them.
 </p>
 
-<h4 id="spec--properties--char-set">Character set (char-set?) properties</h3>
+<h4 id="spec--properties--char-set">Character set (char-set?) properties</h4>
 
 <p>
   Defined in <a href="https://srfi.schemers.org/srfi-14/srfi-14.html">SRFI 14</a>.
@@ -500,7 +500,7 @@ will not appear in the final SRFI.</p>
   <dd> Listing of all characters in the set, as self-valued properties.
 </dl>
 
-<h4 id="spec--properties--set-bag">Set and bag (set?, bag?) properties</h3>
+<h4 id="spec--properties--set-bag">Set and bag (set?, bag?) properties</h4>
 
 <dl>
   <dt> set-element-comparator → symbol
@@ -520,7 +520,7 @@ will not appear in the final SRFI.</p>
   <dd> Used for bag inspection, delegated to set inspection.
 </dl>
 
-<h4 id="spec--properties--library">Library properties</h3>
+<h4 id="spec--properties--library">Library properties</h4>
 
 <p>
   While not represented in standard type system, library is a valid concept deserving inspection.
@@ -536,7 +536,7 @@ will not appear in the final SRFI.</p>
     Might include the <code>include</code>-d forms and is otherwise implementation-dependent.
 </dl>
 
-<h4 id="spec--properties--env">Environment properties</h3>
+<h4 id="spec--properties--env">Environment properties</h4>
 
 <p>
   Same as library, the return value of <a href="https://standards.scheme.org/r7rs-html5/index.html#environment">environment</a> and the like is not first-class.
