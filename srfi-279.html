@@ -479,10 +479,9 @@ will not appear in the final SRFI.</p>
 </p>
 
 <dl>
-  <dt> vector-tag → 's8 | 'u8 | 's16 | 'u16 | 's32 | 'u32 | 's64 | 'u64 | 'f32 | 'f64
-  <dd> The type TAG of the vector. Can also be added to <a href="#spec--properties--vector">vector properties</a>
-    and <a href="#spec--properties--bytevector">bytevector properties</a>,
-    whenever provable / stored / available.
+  <dt> vector-tag → 's8 | 'u8 | 's16 | 'u16 | 's32 | 'u32 | 's64 | 'u64 | 'f32 | 'f64 | 'c64 | 'c128
+  <dd> The type TAG of the vector. Can also be added to
+    <a href="#spec--properties--bytevector">bytevector properties</a> .
   <dt> TAGvector-length → integer, TAGvector->list → [number]
   <dd> As per SRFI 4.
   <dt> 0..N
