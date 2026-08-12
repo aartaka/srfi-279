@@ -281,6 +281,7 @@ will not appear in the final SRFI.</p>
   <dt> 0..N → object
   <dd> Elements of the list inlined into properties.
     In case the list is dotted, the last element resides in “dotted-last” (above).
+    In case the list is circular, only the elements that precede the circular tail are included.
   <dt> field… → object
   <dd> In case the pair is an alist, its pairs are inlined into properties.
 </dl>
