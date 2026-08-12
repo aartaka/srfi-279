@@ -359,11 +359,8 @@ will not appear in the final SRFI.</p>
 <dl>
   <dt> port-open? → boolean
   <dd> Whether the port is currently open.
-  <dt> port-direction → symbol
-  <dd> <code>input</code>, <code>output</code>, or <code>both</code>.
-    While reachable with specific predicates, it’s too convenient to omit.
-  <dt> port-type → symbol
-  <dd> <code>textual</code>, <code>binary</code>, or an implementation-specific value
+  <dt> input-port?, input-port?, textual-port?, binary-port? → boolean
+  <dd> For sub-types of ports
   <dt> port-file → string, port-file-descriptor → integer
   <dd> File the port is writing / reading from, if any.
   <dt> port-line → integer, port-column → integer,  port-position → integer
