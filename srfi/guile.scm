@@ -203,6 +203,10 @@
   `((port-open? ,(if (input-port? object)
                      (input-port-open? object)
                      (output-port-open? object)))
+    (input-port? ,(input-port? object))
+    (output-port? ,(output-port? object))
+    (textual-port? ,(textual-port? object))
+    (binary-port? ,(binary-port? object))
     (port-direction ,(cond
                       ((and (input-port? object)
                             (output-port? object))
