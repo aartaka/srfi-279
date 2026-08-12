@@ -22,7 +22,7 @@
 ;;; FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 ;;; OTHER DEALINGS IN THE SOFTWARE.
 
-(define-library (srfi XXX)
+(define-library (srfi 279)
   (export inspect-properties inspect-describe)
   (import (scheme base)
           (scheme write)
