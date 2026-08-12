@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="en">
+<!--
+SPDX-FileCopyrightText: 2026 Artyom Bologov
+SPDX-License-Identifier: MIT
+-->
+  <head>
+    <meta charset="utf-8">
+    <title>SRFI ###: In(tro)spection Protocol</title>
+    <link href="/favicon.png" rel="icon" sizes="192x192" type="image/png">
+    <link rel="stylesheet" href="https://srfi.schemers.org/srfi.css" type="text/css">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+      figure img {
+          width: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <h1><a href="https://srfi.schemers.org/"><img class="srfi-logo" src="https://srfi.schemers.org/srfi-logo.svg" alt="SRFI surfboard logo" /></a>###: In(tro)spection Protocol</h1>
+
+<p>by Artyom Bologov</p>
+
+<h2 id="status">Status</h2>
+
+<p style="color: red;">For editor's use only.  Please do not edit this section.</p>
+
+<p>??? the draft/final/withdrawn status of the SRFI, information on how
+to subscribe to its mailing list, and important dates in its history.
+The editor will add this section.</p>
+
+<h2 id="abstract">Abstract</h2>
+
+<p>
+  Interactive REPL-driven systems (that most Schemes are) need a way to get detailed information on a given piece of data.
+  Inspectors, as these are conventionally called.
+  This SRFI defines a basic protocol for inspectors, consisting of two procedures:
+  <code>inspect-properties</code> and <code>inspect-describe</code>.
+  Some suggestions for standard and popular types’ inspection are also provided.
+</p>
+
+<h2 id="issues">Issues</h2>
+
+<p>??? Optional section that may point out things to be resolved.  This
+will not appear in the final SRFI.</p>
+
+<h2 id="rationale">Rationale</h2>
+
+<p>
+  Inspectors, graphical or textual, have a relatively long history in Lisps.
+  These go as far as seventies, with <a href="https://maclisp.info/pitmanual/debug.html#22.1">Maclisp having a DESCRIBE</a> function,
+  and Medley Interlisp environment providing an <code>INSPECT</code> function,
+  among other introspection facilities of its programming system.
+</p>
+
+<p>
+  Outside the Lisp family, these tools have different names:
+</p>
+
+<ul>
+  <li> memory debuggers (low-level byte glance,)
+  <li> reflection (programmatic access to (usually) object metadata,)
+  <li> serialization / serializability (storage-oriented data description,)
+  <li> and introspection.
+</ul>
+
+<p>
+  Inspectors are cohabitant with REPLs (read-eval-print loops,) these having a long history in Lisps too:
+  interactive inspection of the object implies that the environment is interactive and REPL-like;
+  and having a REPL with arbitrary computation results implies that one might want to drill down on these results.
+  In detail.
+</p>
+
+<p>
+  In Scheme in particular, the need for inspectors is highlighted by multiple SRFIS:
+  <a href="https://srfi.schemers.org/srfi-102/srfi-102.html">SRFI 102: Procedure Arity Inspection</a> and
+  <a href="https://srfi.schemers.org/srfi-191/srfi-191.html">SRFI 191: Procedure Arity Inspection</a>
+  highlight the need for procedure inspection;
+  <a href="https://srfi.schemers.org/srfi-69/srfi-69.html">SRFI 69: Basic hash tables</a>
+  and a whole family of hash table SRFIs provide “introspection” / “reflection” procedures to get meta-information on hash tables;
+  while <a href="https://srfi.schemers.org/srfi-99/srfi-99.html#InspectionLayer">SRFI 99 and R6RS</a> explicitly name their record type querying procedures that: inspection.
+  However, all of these efforts are dispersed around and isolated into distinct type-specific SRFIs.
+</p>
+
+<p>
+  Scheme needs generic inspectors.
+  This SRFI provides a protocol and pointers that interactive inspectors for arbitrary data structures can be build from.
+</p>
+
+<p>
+  <a href="#spec--properties">inspect-properties</a> and
+  <a href="#spec--describe">inspect-describe</a> are two procedures provided by this SRFI.
+  <code>inspect-properties</code> allows previewing the structured key-value (meta)data about an object.
+  While <code>inspect-describe</code> provides simple, human-readable description of an object for display in the REPL or UI (user interface.)
+  A list of useful properties per data type is provided for ease of implementation and consolidation of inspectors.
+  Sample implementation is also provided for multiple implementations.
+</p>
+
+<h2 id="specification">Specification</h2>
+
+<p>
+  There are only two procedures in this SRFI:
+  <a href="#spec--properties">inspect-properties</a> and <a href="#spec--describe">inspect-describe</a>.
+  These are enough to implement a rich inspector.
+  <code>inspect-properties</code> provides structured data to build the body of inspector from.
+  While <code>inspect-describe</code> is useful in building a quick glance section or UI header.
+  A potential and conventional inspector UI can thus look like
+</p>
+
+<figure>
+<img src="assets/ui.png" alt="UI doodle, showing “The Inspector” screen. On it, the header is “(display obj);” text under it starts with “(inspect-describe obj)” and continues with unintelligible doodles (actually GESS stenography;) and the really badly drawn table having an “(inspect-properties obj)” header. Some properties follow, one of them is a link.">
+<figcaption>Inspector UI with the procedures used to fill it</figcaption>
+</figure>
+
+<h3 id="spec--properties">procedure (inspect-properties object) → alist</h3>
+
+<p>
+  This procedure returns a non-dotted alist of inspect properties for the <var>object</var>.
+  These range from internal implementation details to standard queries to alternative formats to inlined element listings.
+</p>
+
+<p>
+  “Non-dotted alist” means an alist where the value of the pair is not its <code>cdr</code>,
+  but rather a second element of the list (<code>cadr</code>.)
+  This restriction is in place to allow extending the returned list of properties with those beyond the key-value pair.
+  Say, by adding UI display details or property setters as third and other elements in the entry.
+</p>
+
+<p>
+  It is recommended that implementations preserve <a href="https://standards.scheme.org/r7rs-html5/index.html#3.3:~:text=symbols%2C%E2%80%9D%20which%20defeat-,write/read%20invariance,-%2C%20and%20also">read/write invariance</a> and thus only use properly <code>write</code>-able data in property keys and values.
+  Having that, one can easily use standard output facilities in UIs without the fear of breaking something.
+  And store the inspection properties elsewhere.
+  Say, as alternative to memory dumps for forensic investigation.
+</p>
+
+<p>
+  While properties like <a href="https://standards.scheme.org/r7rs-html5/index.html#exact?">exact?</a> and <a href="https://standards.scheme.org/r7rs-html5/index.html#input-port?">input-port?</a> might be useful,
+  they are not specified.
+  Mainly because the object can be queried for these directly.
+  Most other properties specified here cannot be queried directly or are inherent properties of the object.
+</p>
+
+<p>
+  In case the implementation has not information for a given property, this property should be omitted instead of using some dummy value like <code>#f</code>.
+  This is to ensure that no field is confusing the inspector user about its presence.
+</p>
+
+<p>
+  Lastly, a note on notation:
+  Property+value listings have special notation, which, although considered intuitive by the author, needs explanation:
+</p>
+
+<dl>
+  <dt> name → type
+  <dd> Property named by <var>name</var> (likely symbol) with value having the type <var>type</var>.
+    I.e. a list like <code>(name value-of-type)</code>
+  <dt> 0..N → type
+  <dd> <var>type</var>-d elements of the sequence as properties in the property list.
+    I.e. <code>((0 1) (1 "hello") (2 #\null))</code> inlined into property list.
+  <dt> field… → type
+  <dd> A key-value version of the above indexed inlining.
+  <dt> [type] (to the right of the → arrow)
+  <dd> A list of elements of type <var>type</var>.
+  <dt> type1 | type2 (to the right of the → arrow)
+  <dd> A value of either type <var>type1</var> or <var>type2</var>.
+</dl>
+
+<h4 id="spec--properties--object">Object properties</h3>
+
+<dl>
+  <dt> id → integer
+  <dd> Unique ID of the object, likely matching its memory location, garbage collector tag, or hash, whenever suitable.
+  <dt> location → implementation-specific
+  <dd> Representation of the <a href="https://standards.scheme.org/r7rs-html5/index.html#3.4">memory location</a> the object resides in.
+  <dt> size → integer
+  <dd> Amount of memory occupied by the object, in bytes.
+  <dt> type → implementation-specific
+  <dd> Type of the object, whenever inferrable.
+  <dt> write, display → string
+  <dd> Representations of the object as written by <a href="https://standards.scheme.org/r7rs-html5/index.html#6.13.3">standard procedures</a>.
+</dl>
+
+<h4 id="spec--properties--number">Number (number?, complex?, real?, rational?, integer?) properties</h3>
+
+<dl>
+  <dt> imag-part → real, real-part → real
+  <dd> Parts of the complex number.
+  <dt> numerator → real, denominator → real
+  <dd> Parts of the rational number.
+  <dt> real-sign → integer, real-base → integer, real-exponent → integer, real-mantissa → integer
+  <dd> Parts of an exponentially-encoded real number.
+    Sign is one of -1, 0, 1.
+    Exponent and mantissa as per IEEE 754.
+    Base is the numeric base the exponential representation relies on (almost always equal to 2.)
+    “real-significand” can be provided as an additional “real-mantissa” alias.
+  <dt> real-exponent-length → integer, real-mantissa-length → integer
+  <dd> Length of respective parts of a real number. Given that all <code>real?</code> numbers have signs, real-sign-length is unnecessary, but can be added if implementors wish so.
+  <dt> real-precision → integer
+  <dd> The number of decimal places the type of the number can guarantee the exactness of.
+  <dt> fixnum-most-positive → integer, fixnum-most-negative → integer
+  <dd> For fixnums, the highest and lowest representable numbers.
+  <dt> flonum-most-positive → integer, flonum-most-negative → integer, flonum-least-positive → integer, flonum-least-negative → integer
+  <dd> For flonums, the highest / lowest / largest / smallest representable numbers.
+  <dt> integer-length → integer
+  <dd> Number of <em>bits</em> occupied by the integer.
+  <dt> integer-object → object
+  <dd> The object matching the ID represented by the integer.
+  <dt> integer-&gt;char → object
+  <dd> Character corresponding to the integer, whenever possible.
+  <dt> display-2, display-8, display-16 → string
+  <dd> Different representations of the number, as per <a href="https://standards.scheme.org/r7rs-html5/index.html#number-%3Estring">number-&gt;string</a>.
+    <a href="https://srfi.schemers.org/srfi-270/srfi-270.html">Hexadecimal reals whenever supported by the implementation</a>.
+    “display-10” is not provided as synonymous with general object “display.”
+</dl>
+
+<h4 id="spec--properties--boolean">Boolean (boolean?) properties</h3>
+
+<dl>
+  <dt> boolean-&gt;integer → integer
+  <dd> Numeric representation of the boolean used by the implementation.
+    While quite obscure, this property might still be useful in deep implementation inspection.
+    An example case: for an implementation written in BASIC <code>boolean-&gt;integer</code> for <code>#t</code> is -1 and not 1.
+</dl>
+
+<h4 id="spec--properties--pair">Pair (pair?) properties</h3>
+
+<p>
+  Pairs in this section are implied to be non-<a href="https://standards.scheme.org/r7rs-html5/index.html#null?">null?</a> lists, possibly dotted, possibly circular.
+</p>
+
+<dl>
+  <dt> car, cdr → object
+  <dd> Components of the pair.
+  <dt> last → object, last-pair → pair
+  <dd> As per <a href="https://srfi.schemers.org/srfi-1/srfi-1.html#last">SRFI 1</a>.
+  <dt> dotted-last → object
+  <dd> Last element of the dotted / improper list.
+  <dt> length → integer, length+ → integer
+  <dd> Length of the list (if the pair is one) and the length of potentially circular list.
+  <dt> list-&gt;string → string, list-&gt;vector → vector
+  <dd> Conversions of the pair, if it’s a convertible (non-dotted, non-circular) list.
+  <dt> 0..N → object
+  <dd> Elements of the list inlined into properties.
+    In case the list is dotted, the last element resides in “dotted-last” (above.)
+  <dt> field… → object
+  <dd> In case the pair is an alist, its pairs are inlined into properties.
+</dl>
+
+<h4 id="spec--properties--symbol">Symbol (symbol?) properties</h3>
+
+<dl>
+  <dt> symbol-&gt;string → string
+  <dd> Symbol name / string representation.
+  <dt> symbol-library → library
+  <dd> Library the symbol was imported from, whenever known.
+    Can be a list naming the library or the library object.
+  <dt> symbol-value → object
+  <dd> Value bound to the symbol.
+  <dt> symbol-exported? → boolean
+  <dd> Whether the symbol is exported from the library it belongs to.
+    While seemingly meaningless as per R7RS, it accommodates for “internal” symbols akin to those of Common Lisp.
+  <dt> symbol-properties → list
+  <dd> List of properties attached to the symbol, whenever present.
+</dl>
+
+<h4 id="spec--properties--char">Character (char?) properties</h3>
+
+<dl>
+  <dt> char-&gt;integer → integer
+  <dd> Integer representation of the character.
+  <dt> digit-value → integer
+  <dd> For characters representing digits, their numeric values.
+  <dt> char-name → string
+  <dd> Human-readable name of the character, e.g. “MALE WITH STROKE AND MALE AND FEMALE SIGN.”
+  <dt> char-category → symbol
+  <dd> Unicode codepoint category, e.g. “Ll.”
+  <dt> char-limit → integer
+  <dd> The maximum char value representable by the implementation.
+  <dt> char-macro → implementation-specific
+  <dd> Whenever the char has a macro / syntax / dispatcher bound to it.
+  <dt> char-alphabetic?, char-numeric? etc. → boolean
+  <dd> For <a href="https://standards.scheme.org/r7rs-html5/index.html#char-alphabetic?">all standard predicates</a>.
+</dl>
+
+<h4 id="spec--properties--string">String (string?) properties</h3>
+
+<dl>
+  <dt> string-&gt;symbol, string-&gt;list, string-&gt;vector, string-&gt;utf8, string-&gt;number
+  <dd> As per the standard
+  <dt> string-length → integer, string-byte-length → integer
+  <dd> Length of the string (as per the standard, in characters;) and length of the string in bytes.
+  <dt> file-exists? → boolean
+  <dd> Whenever the string represents a file path, whether the path exists.
+    Other file-related properties fit into string properties too.
+  <dt> 0..N → character
+  <dd> Characters of the string, inlined under their indices.
+</dl>
+
+<h4 id="spec--properties--vector">Vector (vector?) properties</h3>
+
+<dl>
+  <dt> vector-length → integer
+  <dd> Number of elements in the vector.
+  <dt> vector-&gt;list, vector-&gt;string
+  <dd> As per the standard.
+  <dt> 0..N
+  <dd> Indexed elements of the vector, inlined into the properties.
+</dl>
+
+<h4 id="spec--properties--bytevector">Bytevector (bytevector?) properties</h3>
+
+<dl>
+  <dt> utf8-&gt;string
+  <dd> Bytevector represented as a string, whenever possible.
+  <dt> 0..N → u8 | byte | integer
+  <dd> Elements of the bytevector, inlined into properties.
+</dl>
+
+<h4 id="spec--properties--port">Port (procedure?) properties</h3>
+
+<dl>
+  <dt> port-open? → boolean
+  <dd> Whether the port is currently open.
+  <dt> port-direction → symbol
+  <dd> <code>input</code>, <code>output</code>, or <code>both</code>.
+    While reachable with specific predicates, it’s too convenient to omit.
+  <dt> port-type → symbol
+  <dd> <code>textual</code>, <code>binary</code>, or an implementation-specific value
+  <dt> port-file → string, port-file-descriptor → integer
+  <dd> File the port is writing / reading from, if any.
+  <dt> port-line → integer, port-column → integer,  port-position → integer
+  <dd> Position in the port, line/column-wise or character-wise.
+  <dt> port-encoding → symbol
+  <dd> Implementation-provided name of the port encoding.
+  <dt> port-buffer → implementation-specific
+  <dd> Representation of port output / input state.
+  <dt> get-output-string → string, get-output-bytevector → bytevector
+  <dd> Results of respective standard functions, for string and bytevector output ports.
+</dl>
+
+<h4 id="spec--properties--procedure">Procedure (procedure?) properties</h3>
+
+<dl>
+  <dt> procedure-name → symbol | string
+  <dd> Likely a symbol that the procedure is currently bound to, whether local or global.
+  <dt> procedure-arity-mask → integer, procedure-arity → arity
+  <dd> As per <a href="https://srfi.schemers.org/srfi-191/srfi-191.html#Specification">SRFI 191</a> and <a href="https://srfi.schemers.org/srfi-102/srfi-102.html#Specification">SRFI 102</a> respectively.
+    While both of these were withdrawn, they serve and important purpose: allowing basic yet essential introspection of procedures.
+  <dt> procedure-arglists → [list | symbol]
+  <dd> List of possible argument lists of the procedure.
+    Procedures can be defined via <a href="https://standards.scheme.org/r7rs-html5/index.html#case-lambda">case-lambda</a> and thus have multiple arities / arglists.
+    The symbol value can happen if the procedure accepts rest argument only,
+    i.e. <code>(lambda arg ...)</code>.
+    Implementations are encouraged to only return standard-shaped arglists (required + rest,)
+    but may return implementation-specific <a href="https://practical-scheme.net/wiliki/schemexref.cgi?Concept%3AExtendedLambdaList">extended lambda lists</a>.
+  <dt> procedure-argument-types → [implementation-specific], procedure-return-types → [implementation-specific]
+  <dd> Whenever the implementation stores procedure types.
+  <dt> procedure-file → string, procedure-line → integer
+  <dd> Location of procedure definition.
+  <dt> procedure-lambda → list
+  <dd> <a href="https://standards.scheme.org/r7rs-html5/index.html#lambda">lambda</a>
+    or <a href="https://standards.scheme.org/r7rs-html5/index.html#case-lambda">case-lambda</a>
+    expression reproducing the procedure logic.
+  <dt> procedure-closure → alist
+  <dd> An alist of variables (symbols or numbers or implementation-specific identifiers) the procedure was closed over, and their values.
+  <dt> procedure-disassembly → implementation-specific
+  <dd> Bytecode, machine code, or an otherwise processed representation of the procedure.
+  <dt> procedure-tag → object
+  <dd> As per <a href="https://srfi.schemers.org/srfi-229/srfi-229.html">SRFI 229: Tagged Procedures</a> or
+    <a href="https://srfi.schemers.org/srfi-259/srfi-259.html">SRFI 259: Tagged procedures with type safety</a>.
+</dl>
+
+<h4 id="spec--properties--record">Record properties</h3>
+
+<dl>
+  <dt> record-rtd, record-type → rtd or another implementation-specific representation
+  <dd> Representation of the type the record is an instance of.
+  <dt> field… → object
+  <dd> symbol or integer indexed fields with their respective values
+</dl>
+
+<p>
+  In case the returned record type is a <a href="https://srfi.schemers.org/srfi-99/srfi-99.html">record type descriptor (RTD) from R6RS / SRFI 99</a>
+  or an equivalent, it might be inspectable too.
+  Possible fields (<code>rtd</code> can be replaced by <code>record-type</code> or other suitable phrase:)
+</p>
+
+<dl>
+  <dt> rtd-name → symbol
+  <dd> Name of the record type.
+  <dt> rtd-field-names → [symbol],  rtd-accessors → [symbol], rtd-mutators → [symbol | #f]
+  <dd> Lists of field metadata, in the order of field definition.
+  <dt> rtd-types → [implementation-specific]
+  <dd> Types of record fields, whenever accessible.
+  <dt> rtd-predicate, rtd-constructor → symbol
+  <dd> Record-related procedures.
+  <dt> rtd-methods, rtd-interfaces, rtd-class, rtd-superclasses, rtd-vtable, rtd-prototype → implementation-specific
+  <dd> For implementations that represent records as objects and record types as classes.
+    Other OOP properties are encouraged, whenever present.
+  <dt> rtd-parent → implementation-specific
+  <dd> The RTD / record type this RTD inherits from
+</dl>
+
+<p>
+  Other <a href="https://standards.scheme.org/corrected-r6rs/r6rs-lib-Z-H-7.html#node_sec_6.4">R6RS record inspection properties</a> can be included.
+</p>
+
+<h4 id="spec--properties--exception">Error / exception (error-object? and other exceptions) properties</h3>
+
+<dl>
+  <dt> error-object-message → string, error-object-irritants → list
+  <dd> As per <a href="https://standards.scheme.org/r7rs-html5/index.html#error-object-message">R7RS error section</a>.
+  <dt> error-continuable? → boolean
+  <dd> Whether the error is continuable.
+    While this goes against the general “no predicates” ethos of this SRFI,
+    this property is not accessible from the outside world and thus needs special inclusion.
+  <dt> error-rtd, condition-rtd → rtd or another representation of error type
+  <dt> Record type descriptor, like for records.
+    Can be a separate error-specific thing with separate (<code>ertd-</code>, <code>error-record-type-</code>) naming and properties.
+</dl>
+
+<h4 id="spec--properties--hash">Hash table (hash-table?) properties</h3>
+
+<p>
+  There are several versions of hash tables in Scheme, with <a href="https://srfi.schemers.org/srfi-69/srfi-69.html">SRFI 69: Basic hash tables</a> being the most prevalent.
+  And with <a href="https://srfi.schemers.org/srfi-126/srfi-126.html">SRFI 126: R6RS-based hashtables</a> and R6RS itself being an important influence.
+  Naming of properties in this sections can rely on either <code>hash-table</code> or <code>hashtable</code> convention.
+  But the <code>hash-table</code> convention is recommended (and used in this specification.)
+  Providing properties with both conventions is an option too.
+</p>
+
+<dl>
+  <dt> hash-table-equivalence-function, hash-table-hash-function → symbol
+  <dd> Names of procedures defining hash table behaviors.
+  <dt> hash-table-size → integer
+  <dd> Number of entries in the hash table.
+  <dt> hash-table-weak?, hash-table-mutable? → boolean
+  <dd> Boolean properties for prominent variations of hash tables.
+  <dt> hash-table-weakness → &apos;key | &apos;value | &apos;both
+  <dd> The part of entries that the weakness of the table depends on, if any.
+  <dt> key… → object
+  <dd> Keys and values in the hash table, essentially converted to properties alist.
+</dl>
+
+<p>
+  Hash table effective size, rehash threshold, and rehash multiplier are not listed due to their relative obscurity and lack of implementation practice.
+</p>
+
+<h4 id="spec--properties--numeric-vector">Numeric vectors (s8vector? etc.) properties</h3>
+
+<p>
+  Defined in <a href="https://srfi.schemers.org/srfi-4/srfi-4.html">SRFI 4: Homogeneous numeric vector datatypes</a>,
+  these are too important to avoid inspecting them.
+  In this section, a notation of “TAG” representing vector tag (<code>s8</code>, <code>f64</code> etc.) is used in property names.
+</p>
+
+<dl>
+  <dt> vector-tag → 's8 | 'u8 | 's16 | 'u16 | 's32 | 'u32 | 's64 | 'u64 | 'f32 | 'f64
+  <dd> The type TAG of the vector. Can also be added to <a href="#spec--properties--vector">vector properties</a>
+    and <a href="#spec--properties--bytevector">bytevector properties</a>,
+    whenever provable / stored / available.
+  <dt> TAGvector-length → integer, TAGvector->list → [number]
+  <dd> As per SRFI 4.
+  <dt> 0..N
+  <dd> Indexed elements of the vector, inlined into the properties.
+</dl>
+
+<h4 id="spec--properties--box">Box (box?) properties</h3>
+
+<p>
+  Specified in <a href="https://srfi.schemers.org/srfi-111/srfi-111.html">SRFI 111: Boxes</a>,
+  boxes / cells / atoms are useful modifiable containers for a single value.
+</p>
+
+<dl>
+  <dt> unbox → object
+  <dd> The value inside the box.
+</dl>
+
+<p>
+  Related SRFIs, like <a href="https://srfi.schemers.org/srfi-195/srfi-195.html">SRFI 195: Multiple-value boxes</a>
+  and <a href="https://srfi.schemers.org/srfi-189/srfi-189.html">SRFI 189: Maybe and Either</a> are not mentioned here,
+  but may as well be supported by implementations providing them.
+</p>
+
+<h4 id="spec--properties--char-set">Character set (char-set?) properties</h3>
+
+<p>
+  Defined in <a href="https://srfi.schemers.org/srfi-14/srfi-14.html">SRFI 14</a>.
+</p>
+
+<dl>
+  <dt> char-set-size → integer
+  <dd> Number of characters in the charset.
+  <dt> char-set-&gt;list → [character], char-set-&gt;string → string
+  <dd> As per <a href="https://srfi.schemers.org/srfi-14/srfi-14.html#char-set-%3Elist">SRFI 14</a>.
+  <dt> char-set-name → symbol
+  <dd> Name of one of the pre-defined character sets, like <code>char-set:lower-case</code>.
+  <dt> char… → char
+  <dd> Listing of all characters in the set, as self-valued properties.
+</dl>
+
+<h4 id="spec--properties--set-bag">Set and bag (set?, bag?) properties</h3>
+
+<dl>
+  <dt> set-element-comparator → symbol
+  <dd> Name of the procedure used to compare elements in the set.
+  <dt> object… → object
+  <dd> Set / bag elements, inlined into properties, keyed and valued by themselves.
+</dl>
+
+<p>
+  Bag properties are suggested to have only one pair.
+  To not duplicate work and delegate everything to set properties.
+  However, implementations may freely add more bag-specific properties.
+</p>
+
+<dl>
+  <dt> bag-&gt;set → set
+  <dd> Used for bag inspection, delegated to set inspection.
+</dl>
+
+<h4 id="spec--properties--library">Library properties</h3>
+
+<p>
+  While not represented in standard type system, library is a valid concept deserving inspection.
+</p>
+
+<dl>
+  <dt> library-name → list
+  <dd> Proper list naming the library.
+  <dt> library-imports → list, library-exports → list
+  <dd> Lists mirroring syntax of <a href="https://standards.scheme.org/r7rs-html5/index.html#5.6.1">library declaration fragments</a>.
+  <dt> library-body → list
+  <dd> List of forms library body consists of.
+    Might include the <code>include</code>-d forms and is otherwise implementation-dependent.
+</dl>
+
+<h4 id="spec--properties--env">Environment properties</h3>
+
+<p>
+  Same as library, the return value of <a href="https://standards.scheme.org/r7rs-html5/index.html#environment">environment</a> and the like is not first-class.
+  However, these are useful enough to prompt inspection.
+</p>
+
+<dl>
+  <dt> environment-libraries → [library | pair]
+  <dd> List of libraries imported into the environment.
+  <dt> environment-symbols → [symbol]
+  <dd> List of all symbols transitively exported from libraries in the environment.
+</dl>
+
+<h3 id="spec--describe">procedure (inspect-describe object [port]) → unspecified</h3>
+
+<p>
+  Prints a human-readable and maximally useful description of the <var>object</var> to <var>port</var>
+  (or <a href="https://standards.scheme.org/r7rs-html5/index.html#current-output-port">current-output-port</a>.)
+  (The exact definition of “useful” output is left to the implementor.)
+  Example of opinionated output from the author’s <a href="https://codeberg.org/aartaka/trivial-inspect">trivial-inspect Common Lisp library</a>, adapted to Scheme:
+</p>
+
+<pre>
+Hash-table [equal?, 4]
+ ("KARINA" . "Rocket puncher")
+ ("WINTER" . "Armamenter")
+ ("GISELLE" . "Xenoglossy")
+ ("NINGNING" . "E.D. Hacker")
+</pre>
+
+<h2 id="implementation">Implementation</h2>
+
+<p>??? explanation of how it meets the sample implementation
+requirement (see <a href="srfi-process.html">process</a>), and the
+code, if possible, or a link to it</p>
+
+<p>We use the phrase <dfn>sample implementation</dfn> instead of
+<dfn>reference implementation</dfn> because the latter implies that
+the implementation itself is the source of truth, whereas for SRFIs,
+the document is normative.</p>
+
+<a href="srfi-minus-???-sample.scm">Source for the sample implementation.</a>
+
+<h2 id="acknowledgements">Acknowledgements</h2>
+
+<p>??? credit where it is due.  For example, please consider
+acknowledging people on the SRFI mailing list who have contributed to
+the discussion.</p>
+
+<h2 id="copyright">Copyright</h2>
+<p>&copy; 2026 Artyom Bologov.</p>
+
+<p>
+  Permission is hereby granted, free of charge, to any person
+  obtaining a copy of this software and associated documentation files
+  (the "Software"), to deal in the Software without restriction,
+  including without limitation the rights to use, copy, modify, merge,
+  publish, distribute, sublicense, and/or sell copies of the Software,
+  and to permit persons to whom the Software is furnished to do so,
+  subject to the following conditions:</p>
+
+<p>
+  The above copyright notice and this permission notice (including the
+  next paragraph) shall be included in all copies or substantial
+  portions of the Software.</p>
+
+<p>
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+  EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+  MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+  NONINFRINGEMENT.  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+  BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+  ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.</p>
+
+  <hr>
+  <address>Editor: <a href="mailto:srfi-editors+at+srfi+dot+schemers+dot+org">Arthur A. Gleckler</a></address></body></html>
