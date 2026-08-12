@@ -209,6 +209,10 @@ will not appear in the final SRFI.</p>
 <dl>
   <dt> id → integer
   <dd> Unique ID of the object, likely matching its memory location, garbage collector tag, or hash, whenever suitable.
+  <dt> hash → integer
+  <dd> Hash of the object, as used in hash-table functions.
+    Almost always <a href="https://srfi.schemers.org/srfi-69/srfi-69.html#hshb">hash-by-identity</a>.
+    Often the same as <code>id</code>.
   <dt> location → implementation-specific
   <dd> Representation of the <a href="https://standards.scheme.org/r7rs-html5/index.html#3.4">memory location</a> the object resides in.
   <dt> size → integer
