@@ -415,7 +415,11 @@
      (f32vector?
       (build 'f32 f32vector-length 'f32vector-length f32vector->list f32vector-ref))
      (f64vector?
-      (build 'f64 f64vector-length 'f64vector-length f64vector->list f64vector-ref)))))
+      (build 'f64 f64vector-length 'f64vector-length f64vector->list f64vector-ref))
+     (c64vector?
+      (build 'c64 c64vector-length 'c64vector-length c64vector->list c64vector-ref))
+     (c128vector?
+      (build 'c128 c128vector-length 'c128vector-length c128vector->list c128vector-ref)))))
 
 (define-checked (char-set-properties (object char-set?))
   `((char-set-size ,(char-set-size object))
