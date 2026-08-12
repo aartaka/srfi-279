@@ -155,8 +155,7 @@
              (lambda (e)
                (k '()))
            (lambda _
-             `((symbol-value ,(eval object (interaction-environment))))))))
-    (symbol-library ,(find-module (symbol-module object)))))
+             `((symbol-value ,(eval object (interaction-environment))))))))))
 
 (define (char-properties object)
   `((char->integer ,(char->integer object))

@@ -73,8 +73,6 @@
      (import (rnrs arithmetic flonums))
      (import (rnrs arithmetic bitwise))
      (import (ice-9 match))
-     (include "geiser-modules.scm")
-     (import (geiser modules))
      (include "guile.scm"))
     (else
      (import (srfi 1)) ;; List library
