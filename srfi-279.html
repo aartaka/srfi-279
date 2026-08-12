@@ -226,16 +226,17 @@ will not appear in the final SRFI.</p>
   <dd> Parts of the complex number.
   <dt> numerator → integer, denominator → integer
   <dd> Parts of the rational number.
-  <dt> real-sign → integer, real-base → integer, real-exponent → integer, real-mantissa → integer
+  <dt> real-sign → integer, real-exponent → integer, real-mantissa → integer
   <dd> Parts of an exponentially-encoded real number.
     Sign is one of -1, 0, 1.
     Exponent and mantissa as per IEEE 754.
-    Base is the numeric base the exponential representation relies on (almost always equal to 2).
     “Real-significand” can be provided as an additional “real-mantissa” alias.
   <dt> real-exponent-length → integer, real-mantissa-length → integer
   <dd> Length of respective parts of a real number. Given that all <code>real?</code> numbers have signs, real-sign-length is unnecessary, but can be added if implementors wish so.
+  <dt> real-base → integer
+  <dd> The numeric base the exponential representation relies on (almost always equal to 2).
   <dt> real-precision → integer
-  <dd> The number of decimal places the type of the number can guarantee the exactness of.
+  <dd> The number of decimal places in “real-base” the type of the number can guarantee the exactness of.
   <dt> fixnum-most-positive → integer, fixnum-most-negative → integer
   <dd> For fixnums, the highest and lowest representable numbers.
   <dt> flonum-most-positive → integer, flonum-most-negative → integer, flonum-least-positive → integer, flonum-least-negative → integer
