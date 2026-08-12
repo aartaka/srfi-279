@@ -44,6 +44,45 @@ The editor will add this section.</p>
 <p>??? Optional section that may point out things to be resolved.  This
 will not appear in the final SRFI.</p>
 
+<h2 id="toc">Table of contents</h2>
+<ul>
+  <li><a href="#rationale">Rationale</a></li>
+  <li>
+    <a href="#specification">Specification</a>
+    <ul>
+      <li>
+        <a href="#spec--properties">procedure (inspect-properties object) → alist</a>
+        <ul>
+          <li><a href="#spec--properties--object">Object properties</a></li>
+          <li><a href="#spec--properties--number">Number (number?, complex?, real?, rational?, integer?) properties</a></li>
+          <li><a href="#spec--properties--boolean">Boolean (boolean?) properties</a></li>
+          <li><a href="#spec--properties--pair">Pair (pair?) properties</a></li>
+          <li><a href="#spec--properties--symbol">Symbol (symbol?) properties</a></li>
+          <li><a href="#spec--properties--char">Character (char?) properties</a></li>
+          <li><a href="#spec--properties--string">String (string?) properties</a></li>
+          <li><a href="#spec--properties--vector">Vector (vector?) properties</a></li>
+          <li><a href="#spec--properties--bytevector">Bytevector (bytevector?) properties</a></li>
+          <li><a href="#spec--properties--port">Port (procedure?) properties</a></li>
+          <li><a href="#spec--properties--procedure">Procedure (procedure?) properties</a></li>
+          <li><a href="#spec--properties--record">Record properties</a></li>
+          <li><a href="#spec--properties--exception">Error / exception (error-object? and other exceptions) properties</a></li>
+          <li><a href="#spec--properties--hash">Hash table (hash-table?) properties</a></li>
+          <li><a href="#spec--properties--numeric-vector">Numeric vectors (s8vector? etc.) properties</a></li>
+          <li><a href="#spec--properties--box">Box (box?) properties</a></li>
+          <li><a href="#spec--properties--char-set">Character set (char-set?) properties</a></li>
+          <li><a href="#spec--properties--set-bag">Set and bag (set?, bag?) properties</a></li>
+          <li><a href="#spec--properties--library">Library properties</a></li>
+          <li><a href="#spec--properties--env">Environment properties</a></li>
+        </ul>
+      </li>
+      <li><a href="#spec--describe">procedure (inspect-describe object [port]) → unspecified</a></li>
+    </ul>
+  </li>
+  <li><a href="#implementation">Implementation</a></li>
+  <li><a href="#acknowledgements">Acknowledgements</a></li>
+  <li><a href="#copyright">Copyright</a></li>
+</ul>
+
 <h2 id="rationale">Rationale</h2>
 
 <p>
