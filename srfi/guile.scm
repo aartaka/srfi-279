@@ -90,9 +90,8 @@
                                 ((zero? object) 0)
                                 ((positive? object) 1)))))
     (real-base 2)
-    ;; Working under an assumption that Guile floats are C doubles
-    ;; https://stackoverflow.com/questions/9999221/double-precision-decimal-places
-    (real-precision 15)
+    ;; Guile encodes flonums as doubles
+    (real-precision 53)
     (real-mantissa-length 53)
     (real-exponent-length 10)
     (fixnum-most-positive most-positive-fixnum)

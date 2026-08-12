@@ -190,9 +190,8 @@
                                 (zero? 0)
                                 (positive? 1)))))
     (real-base 2)
-    ;; https://stackoverflow.com/questions/9999221/double-precision-decimal-places
-    ;; Chibi encodes flonums as double-s
-    (real-precision 15)
+    ;; Kawa encodes flonums as doubles
+    (real-precision 53)
     (fixnum-most-positive 4611686018427387903)
     (fixnum-most-negative -4611686018427387904)
     (flonum-least-positive 2.225e-307)
