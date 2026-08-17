@@ -172,13 +172,13 @@
     (string-byte-length
      ,(bytevector-length (string->utf8 object)))
     (file-exists? ,(file-exists? object))
-    ,@(map (cut list <> <>)
+    ,@(map (lambda (idx char) (list idx char))
            (iota (string-length object))
            (string->list object))))
 
 (define-checked (vector-properties (object vector?))
   `((vector-length ,(vector-length object))
-    ,@(map (cut list <> <>)
+    ,@(map (lambda (idx elem) (list idx elem))
            (iota (vector-length object))
            (vector->list object))))
 

@@ -77,7 +77,6 @@
     (else
      (import (srfi 1)) ;; List library
      (import (srfi 14)) ;; Char sets
-     (import (srfi 26)) ;; cut
      (import (srfi 69)) ;; Hash tables
      (import (srfi 160)) ;; Numeric vectors
      (include "generic.scm"))))
