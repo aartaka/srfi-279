@@ -181,6 +181,11 @@ will not appear in the final SRFI.</p>
 </p>
 
 <p>
+  A similar reasoning goes for “conversion” properties like <code>vector-&gt;list</code> that were present in earlier drafts of this SRFI.
+  They are computationally demanding and don’t bring much value, thus their removal.
+</p>
+
+<p>
   In case the implementation has no information for a given property, this property should be omitted instead of using some dummy value like <code>#f</code>.
   This is to ensure that no field is confusing the inspector user about its presence.
 </p>
@@ -285,8 +290,6 @@ will not appear in the final SRFI.</p>
   <dd> Last element of the dotted / improper list.
   <dt> length → integer, length+ → integer
   <dd> Length of the list (if the pair is one) and the length of potentially circular list.
-  <dt> list-&gt;string → string, list-&gt;vector → vector
-  <dd> Conversions of the pair, if it’s a convertible (non-dotted, non-circular) list.
   <dt> 0..N → object
   <dd> Elements of the list inlined into properties.
     In case the list is dotted, the last element resides in “dotted-last” (above).
@@ -324,7 +327,7 @@ will not appear in the final SRFI.</p>
 <h4 id="spec--properties--string">String (string?) properties</h4>
 
 <dl>
-  <dt> string-&gt;symbol, string-&gt;list, string-&gt;vector, string-&gt;utf8, string-&gt;number
+  <dt> string-&gt;symbol, string-&gt;utf8, string-&gt;number
   <dd> As per the standard
   <dt> string-length → integer, string-byte-length → integer
   <dd> Length of the string (as per the standard, in characters;) and length of the string in bytes.
@@ -492,7 +495,7 @@ will not appear in the final SRFI.</p>
   <dt> vector-tag → 's8 | 'u8 | 's16 | 'u16 | 's32 | 'u32 | 's64 | 'u64 | 'f32 | 'f64 | 'c64 | 'c128
   <dd> The type TAG of the vector. Can also be added to
     <a href="#spec--properties--bytevector">bytevector properties</a> .
-  <dt> TAGvector-length → integer, TAGvector->list → [number]
+  <dt> TAGvector-length → integer
   <dd> As per SRFI 4.
   <dt> 0..N
   <dd> Indexed elements of the vector, inlined into the properties.
@@ -525,8 +528,6 @@ will not appear in the final SRFI.</p>
 <dl>
   <dt> char-set-size → integer
   <dd> Number of characters in the charset.
-  <dt> char-set-&gt;list → [character], char-set-&gt;string → string
-  <dd> As per <a href="https://srfi.schemers.org/srfi-14/srfi-14.html#char-set-%3Elist">SRFI 14</a>.
   <dt> char-set-name → symbol
   <dd> Name of one of the pre-defined character sets, like <code>char-set:lower-case</code>.
   <dt> char… → char
