@@ -591,7 +591,7 @@
 (define inspect-describe
   (case-lambda
    ((object) (inspect-describe object (current-output-port)))
-   ((object (port port?))
+   ((object port)
     (parameterize ((current-output-port port))
       ((cond
         ((number? object) number-describe)
