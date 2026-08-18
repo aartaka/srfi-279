@@ -72,9 +72,17 @@
      (import (rnrs arithmetic bitwise))
      (import (ice-9 match))
      (include "guile.scm"))
-    (else
+    (chicken
+     (import (chicken base))
      (import (srfi 1)) ;; List library
      (import (srfi 14)) ;; Char sets
      (import (srfi 69)) ;; Hash tables
+     (import (srfi 151)) ;; Integers as bits
+     (import (srfi 160 base)) ;; Numeric vectors
+     (include "chicken.scm"))
+    (else
+     (import (srfi 1))   ;; List library
+     (import (srfi 14))  ;; Char sets
+     (import (srfi 69))  ;; Hash tables
      (import (srfi 160)) ;; Numeric vectors
      (include "generic.scm"))))
