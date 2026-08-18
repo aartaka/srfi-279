@@ -112,9 +112,11 @@
     (real-base 2)
     ;; Chibi encodes flonums as double-s
     (real-precision 53)
-    ,@(when/null (integer? object)
+    ,@(when/null (and (integer? object)
+                      (exact? object))
                  `((integer-length ,(integer-length object))))
     ,@(when/null (and (integer? object)
+                      (exact? object)
                       (<= object #x10FFFF))
                  `((integer->char ,(integer->char object))))
     ;; integer-object seems to be generally impossible:
