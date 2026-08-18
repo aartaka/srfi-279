@@ -429,7 +429,7 @@
   (let ((props (pair-properties object)))
     (? "Pair ")
     (if (circular-list? object)
-        (write object)
+        (? "(circular)")
         (let ((first-five (take-5 object)))
           (? "(")
           (? (car first-five))
@@ -453,7 +453,7 @@
 (define-checked (char-describe (object char?))
   (let ((props (char-properties object)))
     (? "Char ") (write object)
-    (? " U+") (? (string-upcase (number->string (char->integer object))))
+    (? " U+") (? (string-upcase (number->string (char->integer object) 16)))
     (and-let* ((category (assoc-ref 'char-category props)))
       (? "[") (? category) (? "]"))))
 

@@ -444,7 +444,7 @@
 (define (char-describe object)
   (let ((props (char-properties object)))
     (? "Char ") (write object)
-    (? " U+") (? (string-upcase (number->string (char->integer object))))
+    (? " U+") (? (string-upcase (number->string (char->integer object) 16)))
     (and-let* ((category (assoc-ref 'char-category props)))
       (? "[") (? category) (? "]"))))
 
