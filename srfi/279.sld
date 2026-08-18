@@ -31,9 +31,7 @@
           (scheme file)
           (scheme eval)
           (scheme case-lambda))
-  (cond-expand
-    (guile)
-    (else (import (srfi 253))))
+  (import (srfi 253))
   (cond-expand
     (chibi
      (import (srfi 1)) ;; List library
