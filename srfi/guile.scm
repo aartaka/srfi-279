@@ -82,10 +82,10 @@
 (define (number-properties object)
   `((real-part ,(real-part object))
     (imag-part ,(imag-part object))
-    (numerator ,(numerator object))
-    (denominator ,(denominator object))
     ,@(when/null (rational? object)
-                 `((real-sign ,(cond
+                 `((numerator ,(numerator object))
+                   (denominator ,(denominator object))
+                   (real-sign ,(cond
                                 ((negative? object) -1)
                                 ((zero? object) 0)
                                 ((positive? object) 1)))))

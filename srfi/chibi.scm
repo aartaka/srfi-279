@@ -86,10 +86,10 @@
 (define-checked (number-properties (object number?))
   `((real-part ,(real-part object))
     (imag-part ,(imag-part object))
-    (numerator ,(numerator object))
-    (denominator ,(denominator object))
     ,@(when/null (rational? object)
-                 `((real-sign ,(check-case
+                 `((numerator ,(numerator object))
+                   (denominator ,(denominator object))
+                   (real-sign ,(check-case
                                 object
                                 (negative? -1)
                                 (zero? 0)
