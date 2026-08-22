@@ -23,7 +23,7 @@
 ;;; OTHER DEALINGS IN THE SOFTWARE.
 
 (define-library (srfi 279)
-  (export inspect-properties inspect-describe)
+  (export inspect-properties inspect-property inspect-describe)
   (import (scheme base)
           (scheme write)
           (scheme char)

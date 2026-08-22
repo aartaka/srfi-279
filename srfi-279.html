@@ -35,8 +35,8 @@ SPDX-License-Identifier: MIT
 <p>
   Interactive REPL-driven systems (that most Schemes are) need a way to get detailed information on a given piece of data.
   Inspectors, as these are conventionally called.
-  This SRFI defines a basic protocol for inspectors, consisting of two procedures:
-  <code>inspect-properties</code> and <code>inspect-describe</code>.
+  This SRFI defines a basic protocol for inspectors, consisting of three procedures:
+  <code>inspect-properties</code>, <code>inspect-property</code>, and <code>inspect-describe</code>.
   Some suggestions for standard and popular types’ inspection are also provided.
 </p>
 
@@ -75,6 +75,9 @@ will not appear in the final SRFI.</p>
           <li><a href="#spec--properties--library">Library properties</a></li>
           <li><a href="#spec--properties--env">Environment properties</a></li>
         </ul>
+      </li>
+      <li>
+        <a href="#spec--property">procedure (inspect-property object) → object, boolean</a>
       </li>
       <li><a href="#spec--describe">procedure (inspect-describe object [port]) → unspecified</a></li>
     </ul>
@@ -127,10 +130,12 @@ will not appear in the final SRFI.</p>
 </p>
 
 <p>
-  <a href="#spec--properties">inspect-properties</a> and
-  <a href="#spec--describe">inspect-describe</a> are two procedures provided by this SRFI.
+  <a href="#spec--properties">inspect-properties</a>,
+  <a href="#spec--property">inspect-property</a>, and
+  <a href="#spec--describe">inspect-describe</a> are three procedures provided by this SRFI.
   <code>inspect-properties</code> allows previewing the structured key-value (meta)data about an object,
   while <code>inspect-describe</code> provides simple, human-readable description of an object for display in the REPL or UI (user interface).
+  <code>inspect-property</code> is a thin wrapper allowing to conveniently get an individual property for a given object.
   A list of useful properties per data type is provided for ease of implementation and consolidation of inspectors.
   Sample implementation is also provided for multiple implementations.
 </p>
@@ -581,6 +586,17 @@ will not appear in the final SRFI.</p>
   <dt> environment-symbols → [symbol]
   <dd> List of all symbols transitively exported from libraries in the environment.
 </dl>
+
+<h3 id="spec--property">procedure (inspect-property object key) → object, boolean</h3>
+
+<p>
+  Gets an inspect property under <var>key</var> from inspect properties
+  (as defined by <a href="#spec--properties">inspect-properties</a>.)
+  Returns two values: (1) property value, and (2) boolean denoting whether the property was found.
+  In the simplest implementation is’s a mere
+  <a href="https://standards.scheme.org/r7rs-html5/index.html#assoc">assoc</a>
+  with additional processing.
+</p>
 
 <h3 id="spec--describe">procedure (inspect-describe object [port]) → unspecified</h3>
 

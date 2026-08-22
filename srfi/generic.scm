@@ -335,6 +335,14 @@
             (else (lambda (x) '())))
            object)))
 
+;;; inspect-property
+
+(define (inspect-property object key)
+  (let ((pair (assoc key (inspect-properties object))))
+    (if pair
+        (values (cadr pair) #t)
+        (values #f #f))))
+
 ;;; inspect-describe
 
 (define-checked (number-describe (object number?))
