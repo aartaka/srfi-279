@@ -23,12 +23,12 @@
 ;;; OTHER DEALINGS IN THE SOFTWARE.
 
 (import (scheme base)
-          (scheme write)
-          (scheme char)
-          (scheme complex)
-          (scheme file)
-          (scheme eval)
-          (scheme case-lambda))
+        (scheme write)
+        (scheme char)
+        (scheme complex)
+        (scheme file)
+        (scheme eval)
+        (scheme case-lambda))
 
 (import (srfi 1)) ;; List library
 (import (srfi 14)) ;; Char sets
