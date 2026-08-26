@@ -595,7 +595,9 @@ will not appear in the final SRFI.</p>
   Returns two values: (1) property value, and (2) boolean denoting whether the property was found.
   In the simplest implementation is’s a mere
   <a href="https://standards.scheme.org/r7rs-html5/index.html#assoc">assoc</a>
-  with additional processing.
+  over <code>inspect-properties</code>, with additional processing.
+  A more involved implementation might calculate any individual property on-demand,
+  without all the rest of <code>inspect-properties</code>.
 </p>
 
 <h3 id="spec--describe">procedure (inspect-describe object [port]) → unspecified</h3>
