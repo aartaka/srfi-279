@@ -23,7 +23,7 @@
 ;;; OTHER DEALINGS IN THE SOFTWARE.
 
 (define-library (srfi 279)
-  (export inspect-properties inspect-describe)
+  (export inspect-properties inspect-property inspect-describe)
   (import (scheme base)
           (scheme write)
           (scheme char)
@@ -31,9 +31,7 @@
           (scheme file)
           (scheme eval)
           (scheme case-lambda))
-  (cond-expand
-    (guile)
-    (else (import (srfi 253))))
+  (import (srfi 253))
   (cond-expand
     (chibi
      (import (srfi 1)) ;; List library
@@ -73,13 +71,18 @@
      (import (rnrs arithmetic flonums))
      (import (rnrs arithmetic bitwise))
      (import (ice-9 match))
-     (include "geiser-modules.scm")
-     (import (geiser modules))
      (include "guile.scm"))
-    (else
+    (chicken
+     (import (chicken base))
      (import (srfi 1)) ;; List library
      (import (srfi 14)) ;; Char sets
-     (import (srfi 26)) ;; cut
      (import (srfi 69)) ;; Hash tables
+     (import (srfi 151)) ;; Integers as bits
+     (import (srfi 160 base)) ;; Numeric vectors
+     (include "chicken.scm"))
+    (else
+     (import (srfi 1))   ;; List library
+     (import (srfi 14))  ;; Char sets
+     (import (srfi 69))  ;; Hash tables
      (import (srfi 160)) ;; Numeric vectors
      (include "generic.scm"))))

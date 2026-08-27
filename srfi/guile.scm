@@ -82,26 +82,18 @@
 (define (number-properties object)
   `((real-part ,(real-part object))
     (imag-part ,(imag-part object))
-    (numerator ,(numerator object))
-    (denominator ,(denominator object))
     ,@(when/null (rational? object)
-                 `((real-sign ,(cond
+                 `((numerator ,(numerator object))
+                   (denominator ,(denominator object))
+                   (real-sign ,(cond
                                 ((negative? object) -1)
                                 ((zero? object) 0)
                                 ((positive? object) 1)))))
     (real-base 2)
-    ;; Working under an assumption that Guile floats are C doubles
-    ;; https://stackoverflow.com/questions/9999221/double-precision-decimal-places
-    (real-precision 15)
+    ;; Guile encodes flonums as doubles
+    (real-precision 53)
     (real-mantissa-length 53)
     (real-exponent-length 10)
-    (fixnum-most-positive most-positive-fixnum)
-    (fixnum-most-negative most-negative-fixnum)
-    ;; Working under an assumption that Guile floats are C doubles
-    (flonum-least-positive 2.225e-307)
-    (flonum-least-negative -2.225e-307)
-    (flonum-most-positive 179769313486231570814527423731704356798070567525844996598917476803157260780028538760589558632766878171540458953514382464234321326889464182768467546703537516986049910576551282076245490090389328944075868508455133942304583236903222948165808559332123348274797826204144723168738177180919299881250404026184124858368.000000)
-    (flonum-most-negative -179769313486231570814527423731704356798070567525844996598917476803157260780028538760589558632766878171540458953514382464234321326889464182768467546703537516986049910576551282076245490090389328944075868508455133942304583236903222948165808559332123348274797826204144723168738177180919299881250404026184124858368.000000)
     ,@(when/null (integer? object)
                  `((integer-length ,(integer-length object))))
     ,@(when/null (and (integer? object)
@@ -145,14 +137,7 @@
                                          (+ idx 1)
                                          (cdr object)))))))
       ,@(when/null (dotted-list? object)
-                   `((dotted-last ,truly-last)))
-      ,@(when/null (not (or (circular-list? object)
-                            (dotted-list? object)))
-                   `((list->vector ,(list->vector object))))
-      ,@(when/null (and (not (or (circular-list? object)
-                                 (dotted-list? object)))
-                        (every char? object))
-                   `((list->string ,(list->string object)))))))
+                   `((dotted-last ,truly-last))))))
 
 (define (symbol-properties object)
   `((symbol->string ,(symbol->string object))
@@ -163,15 +148,12 @@
              (lambda (e)
                (k '()))
            (lambda _
-             `((symbol-value ,(eval object (interaction-environment))))))))
-    (symbol-library ,(find-module (symbol-module object)))))
+             `((symbol-value ,(eval object (interaction-environment))))))))))
 
 (define (char-properties object)
   `((char->integer ,(char->integer object))
     ,@(when/null (char-general-category object)
                  `((char-category ,(char-general-category object))))
-    ;; Unicode limit, untested
-    (char-limit #x10FFFF)
     (char-alphabetic? ,(char-alphabetic? object))
     (char-numeric? ,(char-numeric? object))
     (char-whitespace? ,(char-whitespace? object))
@@ -180,8 +162,6 @@
 
 (define (string-properties object)
   `((string->symbol ,(string->symbol object))
-    (string->list ,(string->list object))
-    (string->vector ,(string->vector object))
     (string->utf8 ,(string->utf8 object))
     (string->number ,(string->number object))
     (string-length ,(string-length object))
@@ -194,9 +174,6 @@
 
 (define (vector-properties object)
   `((vector-length ,(vector-length object))
-    (vector->list ,(vector->list object))
-    ,@(when/null (every char? (vector->list object))
-                 `((vector->string ,(vector->string object))))
     ,@(map (cut list <> <>)
            (iota (vector-length object))
            (vector->list object))))
@@ -214,6 +191,10 @@
   `((port-open? ,(if (input-port? object)
                      (input-port-open? object)
                      (output-port-open? object)))
+    (input-port? ,(input-port? object))
+    (output-port? ,(output-port? object))
+    (textual-port? ,(textual-port? object))
+    (binary-port? ,(binary-port? object))
     (port-direction ,(cond
                       ((and (input-port? object)
                             (output-port? object))
@@ -320,39 +301,36 @@
            (hash-table->alist object))))
 
 (define (numeric-vector-properties object)
-  (let ((build (lambda (tag length-proc length-proc-name list-proc ref-proc)
+  (let ((build (lambda (tag length-proc length-proc-name ref-proc)
                  `((vector-tag ,tag)
                    (,length-proc-name ,(length-proc object))
-                   (,(procedure-name list-proc) ,(list-proc object))
                    ,@(map (lambda (idx)
                             (list idx (ref-proc object idx)))
                           (iota (length-proc object)))))))
     (cond
      ((s8vector? object)
-      (build 's8 s8vector-length 's8vector-length s8vector->list s8vector-ref))
+      (build 's8 s8vector-length 's8vector-length s8vector-ref))
      ((u8vector? object)
-      (build 'u8 u8vector-length 'u8vector-length u8vector->list u8vector-ref))
+      (build 'u8 u8vector-length 'u8vector-length u8vector-ref))
      ((s16vector? object)
-      (build 's16 s16vector-length 's16vector-length s16vector->list s16vector-ref))
+      (build 's16 s16vector-length 's16vector-length s16vector-ref))
      ((u16vector? object)
-      (build 'u16 u16vector-length 'u16vector-length u16vector->list u16vector-ref))
+      (build 'u16 u16vector-length 'u16vector-length u16vector-ref))
      ((s32vector? object)
-      (build 's32 s32vector-length 's32vector-length s32vector->list s32vector-ref))
+      (build 's32 s32vector-length 's32vector-length s32vector-ref))
      ((u32vector? object)
-      (build 'u32 u32vector-length 'u32vector-length u32vector->list u32vector-ref))
+      (build 'u32 u32vector-length 'u32vector-length u32vector-ref))
      ((s64vector? object)
-      (build 's64 s64vector-length 's64vector-length s64vector->list s64vector-ref))
+      (build 's64 s64vector-length 's64vector-length s64vector-ref))
      ((u64vector? object)
-      (build 'u64 u64vector-length 'u64vector-length u64vector->list u64vector-ref))
+      (build 'u64 u64vector-length 'u64vector-length u64vector-ref))
      ((f32vector? object)
-      (build 'f32 f32vector-length 'f32vector-length f32vector->list f32vector-ref))
+      (build 'f32 f32vector-length 'f32vector-length f32vector-ref))
      ((f64vector? object)
-      (build 'f64 f64vector-length 'f64vector-length f64vector->list f64vector-ref)))))
+      (build 'f64 f64vector-length 'f64vector-length f64vector-ref)))))
 
 (define (char-set-properties object)
   `((char-set-size ,(char-set-size object))
-    (char-set->list ,(char-set->list object))
-    (char-set->string ,(char-set->string object))
     (char-set-name ,(cond
                      ((eq? char-set:lower-case object)
                       'char-set:lower-case)
@@ -421,6 +399,14 @@
             (else record-properties))
            object)))
 
+;;; inspect-property
+
+(define (inspect-property object key)
+  (let ((pair (assoc key (inspect-properties object))))
+    (if pair
+        (values (cadr pair) #t)
+        (values #f #f))))
+
 ;;; inspect-describe
 
 (define (number-describe object)
@@ -466,7 +452,7 @@
 (define (char-describe object)
   (let ((props (char-properties object)))
     (? "Char ") (write object)
-    (? " U+") (? (string-upcase (number->string (char->integer object))))
+    (? " U+") (? (string-upcase (number->string (char->integer object) 16)))
     (and-let* ((category (assoc-ref 'char-category props)))
       (? "[") (? category) (? "]"))))
 
@@ -613,7 +599,7 @@
 (define inspect-describe
   (case-lambda
    ((object) (inspect-describe object (current-output-port)))
-   ((object (port port?))
+   ((object port)
     (parameterize ((current-output-port port))
       ((cond
         ((number? object) number-describe)

@@ -79,10 +79,10 @@
 (define-checked (number-properties (object number?))
   `((real-part ,(real-part object))
     (imag-part ,(imag-part object))
-    (numerator ,(numerator object))
-    (denominator ,(denominator object))
     ,@(when/null (rational? object)
-                 `((real-sign ,(check-case
+                 `((numerator ,(numerator object))
+                   (denominator ,(denominator object))
+                   (real-sign ,(check-case
                                 object
                                 (negative? -1)
                                 (zero? 0)
@@ -124,14 +124,7 @@
                                          (+ idx 1)
                                          (cdr object)))))))
       ,@(when/null (dotted-list? object)
-                   `((dotted-last ,truly-last)))
-      ,@(when/null (not (or (circular-list? object)
-                            (dotted-list? object)))
-                   `((list->vector ,(list->vector object))))
-      ,@(when/null (and (not (or (circular-list? object)
-                                 (dotted-list? object)))
-                        (every char? object))
-                   `((list->string ,(list->string object)))))))
+                   `((dotted-last ,truly-last))))))
 
 (define-checked (symbol-properties (object symbol?))
   `((symbol->string ,(symbol->string object))
@@ -173,24 +166,19 @@
 
 (define-checked (string-properties (object string?))
   `((string->symbol ,(string->symbol object))
-    (string->list ,(string->list object))
-    (string->vector ,(string->vector object))
     (string->utf8 ,(string->utf8 object))
     (string->number ,(string->number object))
     (string-length ,(string-length object))
     (string-byte-length
      ,(bytevector-length (string->utf8 object)))
     (file-exists? ,(file-exists? object))
-    ,@(map (cut list <> <>)
+    ,@(map (lambda (idx char) (list idx char))
            (iota (string-length object))
            (string->list object))))
 
 (define-checked (vector-properties (object vector?))
   `((vector-length ,(vector-length object))
-    (vector->list ,(vector->list object))
-    ,@(when/null (every char? (vector->list object))
-                 `((vector->string ,(vector->string object))))
-    ,@(map (cut (list <> <>))
+    ,@(map (lambda (idx elem) (list idx elem))
            (iota (vector-length object))
            (vector->list object))))
 
@@ -207,6 +195,10 @@
   `((port-open? ,(if (input-port? object)
                      (input-port-open? object)
                      (output-port-open? object)))
+    (input-port? ,(input-port? object))
+    (output-port? ,(output-port? object))
+    (textual-port? ,(textual-port? object))
+    (binary-port? ,(binary-port? object))
     (port-direction ,(cond
                       ((and (input-port? object)
                             (output-port? object))
@@ -246,40 +238,37 @@
            (hash-table->alist object))))
 
 (define-checked (numeric-vector-properties object)
-  (let ((build (lambda (tag length-proc length-proc-name list-proc ref-proc)
+  (let ((build (lambda (tag length-proc length-proc-name ref-proc)
                  `((vector-tag ,tag)
                    (,length-proc-name ,(length-proc object))
-                   (,(procedure-name list-proc) ,(list-proc object))
                    ,@(map (lambda (idx)
                             (list idx (ref-proc object idx)))
                           (iota (length-proc object)))))))
     (check-case
      object
      (s8vector?
-      (build 's8 s8vector-length 's8vector-length s8vector->list s8vector-ref))
+      (build 's8 s8vector-length 's8vector-length s8vector-ref))
      (u8vector?
-      (build 'u8 u8vector-length 'u8vector-length u8vector->list u8vector-ref))
+      (build 'u8 u8vector-length 'u8vector-length u8vector-ref))
      (s16vector?
-      (build 's16 s16vector-length 's16vector-length s16vector->list s16vector-ref))
+      (build 's16 s16vector-length 's16vector-length s16vector-ref))
      (u16vector?
-      (build 'u16 u16vector-length 'u16vector-length u16vector->list u16vector-ref))
+      (build 'u16 u16vector-length 'u16vector-length u16vector-ref))
      (s32vector?
-      (build 's32 s32vector-length 's32vector-length s32vector->list s32vector-ref))
+      (build 's32 s32vector-length 's32vector-length s32vector-ref))
      (u32vector?
-      (build 'u32 u32vector-length 'u32vector-length u32vector->list u32vector-ref))
+      (build 'u32 u32vector-length 'u32vector-length u32vector-ref))
      (s64vector?
-      (build 's64 s64vector-length 's64vector-length s64vector->list s64vector-ref))
+      (build 's64 s64vector-length 's64vector-length s64vector-ref))
      (u64vector?
-      (build 'u64 u64vector-length 'u64vector-length u64vector->list u64vector-ref))
+      (build 'u64 u64vector-length 'u64vector-length u64vector-ref))
      (f32vector?
-      (build 'f32 f32vector-length 'f32vector-length f32vector->list f32vector-ref))
+      (build 'f32 f32vector-length 'f32vector-length f32vector-ref))
      (f64vector?
-      (build 'f64 f64vector-length 'f64vector-length f64vector->list f64vector-ref)))))
+      (build 'f64 f64vector-length 'f64vector-length f64vector-ref)))))
 
 (define-checked (char-set-properties (object char-set?))
   `((char-set-size ,(char-set-size object))
-    (char-set->list ,(char-set->list object))
-    (char-set->string ,(char-set->string object))
     (char-set-name ,(cond
                      ((eq? char-set:lower-case object)
                       'char-set:lower-case)
@@ -346,6 +335,14 @@
             (else (lambda (x) '())))
            object)))
 
+;;; inspect-property
+
+(define (inspect-property object key)
+  (let ((pair (assoc key (inspect-properties object))))
+    (if pair
+        (values (cadr pair) #t)
+        (values #f #f))))
+
 ;;; inspect-describe
 
 (define-checked (number-describe (object number?))
@@ -390,7 +387,7 @@
 (define-checked (char-describe (object char?))
   (let ((props (char-properties object)))
     (? "Char ") (write object)
-    (? " U+") (? (string-upcase (number->string (char->integer object))))
+    (? " U+") (? (string-upcase (number->string (char->integer object) 16)))
     (and-let* ((category (assoc-ref 'char-category props)))
       (? "[") (? category) (? "]"))))
 
@@ -406,9 +403,7 @@
 (define-checked (vector-describe (object vector?))
   (let ((props (vector-properties object)))
     (? "Vector #")
-    (print-abridged (vector->list object))
-    (when (assoc-ref 'vector->string props)
-      (? " (") (write (assoc-ref 'vector->string props)) (? ")"))))
+    (print-abridged (vector->list object))))
 
 (define-checked (bytevector->list (object bytevector?)) => (list?)
   (let loop ((idx 0))

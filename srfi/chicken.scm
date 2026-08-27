@@ -22,6 +22,29 @@
 ;;; FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 ;;; OTHER DEALINGS IN THE SOFTWARE.
 
+(import (scheme base)
+        (scheme write)
+        (scheme char)
+        (scheme complex)
+        (scheme file)
+        (scheme eval)
+        (scheme case-lambda))
+
+(import (srfi 1)) ;; List library
+(import (srfi 14)) ;; Char sets
+(import (srfi 26)) ;; cut/cute
+(import (srfi 69)) ;; Hash tables
+(import (srfi 151)) ;; Integers as bits
+(import (srfi 160 base)) ;; Numeric vectors
+(import (srfi 253))
+
+(define-syntax when/null
+  (syntax-rules ()
+    ((_ cond body ...)
+     (if cond
+         (begin body ...)
+         (list)))))
+
 (define-syntax false-if-error
   (syntax-rules ()
     ((_ body ...)
@@ -41,119 +64,21 @@
 (define ? display)
 
 (define (take-5 lst)
-  (take lst (min (length lst) 5)))
+  (take lst (min (length+ lst) 5)))
 
 (define (take-10 lst)
-  (take lst (min (length lst) 10)))
+  (take lst (min (length+ lst) 10)))
 
-(define-checked (procedure-arg-num (proc procedure?))
-  (let* ((numArgs (proc:numArgs))
-         (rest? (negative? numArgs)))
-    (values (logand numArgs #b11111111111) rest?)))
-
-(define-checked (%procedure-arg-types (proc procedure?))
-  (let-values (((num rest?) (procedure-arg-num proc)))
-    (let rec ((param 0))
-      (cond
-       ((and (= param num) rest?)
-        (proc:getParameterType param))
-       ((= param num)
-        '())
-       (else
-        (cons (proc:getParameterType param)
-              (rec (+ 1 param))))))))
-
-(define (prettify-type type)
-  (let* ((name ((type:toString):replace "ClassType " ""))
-         (name (name:replace "Type " "")))
-    ;; (cond
-    ;;  ((equal? name "gnu.mapping.Symbol") 'symbol?)
-    ;;  ((equal? name "gnu.expr.Keyword") 'keyword?)
-    ;;  ((equal? name "list") 'list?)
-    ;;  ;; TODO: Pair?
-    ;;  ((equal? name "java.lang.CharSequence") 'string?)
-    ;;  ((equal? name "character") 'character?)
-    ;;  ((equal? name "vector") 'vector?)
-    ;;  ((equal? name "gnu.mapping.Procedure") 'procedure?)
-    ;;  ((equal? name "java.io.Reader") 'input-port?)
-    ;;  ((equal? name "java.io.Writer") 'input-port?)
-    ;;  ((equal? name "gnu.lists.Array") 'array?)
-    ;;  ((equal? name "java.lang.Number") 'number?)
-    ;;  ((equal? name "java.io.Closeable") 'port?)
-    ;;  ((equal? name "gnu.math.Complex") 'complex?)
-    ;;  ((equal? name "gnu.math.Quantity") 'quantity?)
-    ;;  ((member name '("real" "rational" "integer"
-    ;;                  "long" "int" "short" "byte"
-    ;;                  "ulong" "uint" "ushort" "ubyte"
-    ;;                  "double" "float"))
-    ;;   (string->symbol (string-append name "?")))
-    ;;  (else #f))
-    name))
-
-(define-checked (procedure-arg-types (proc procedure?))
-  (case (if proc:name
-            (string->symbol proc:name)
-            #f)
-    ((+ * - /)
-     '())
-    ((apply)
-     '("gnu.mapping.Procedure"))
-    ((array-ref)
-     '("gnu.lists.Array"))
-    ((array-set!)
-     '("gnu.lists.Array"))
-    ((bitwise-and bitwise-ior bitwise-xor)
-     '())
-    ((bitwise-arithmetic-shift bitwise-arithmetic-shift-left bitwise-arithmetic-shift-right)
-     '("integer" "integer"))
-    ((bitwise-not) '("integer"))
-    ((call-with-current-continuation call/cc)
-     '("gnu.mapping.Procedure"))
-    ((call-with-values)
-     '("gnu.mapping.Procedure" "gnu.mapping.Procedure"))
-    ((format)
-     '(#f))
-    ((floor/ floor-quotient floor-remainder
-             truncate/ truncate-quotient truncate-remainder
-             quotinent remainder
-             div mod modulo div0 mod0)
-     '("integer" "integer"))
-    ((expt)
-     '("gnu.math.Complex" "gnu.math.Complex"))
-    ((eq? eqv? equal?)
-     '(#f #f))
-    ((list)
-     '())
-    ((make-procedure)
-     '())
-    ((map for-each)
-     '("gnu.mapping.Procedure" "list"))
-    ((> = < >= <=)
-     '("java.lang.Number" "java.lang.Number"))
-    ((run-process)
-     '())
-    ((even? odd?)
-     '("integer"))
-    (else
-     (let ((types (%procedure-arg-types proc)))
-       (let rec ((types types))
-         (cond
-          ((pair? types)
-           (cons (prettify-type (car types))
-                 (rec (cdr types))))
-          ((null? types)
-           '())
-          (else (prettify-type types))))))))
-
-(define-checked (procedure-name (proc procedure?))
-  (string->symbol proc:name))
-
-(define-syntax when/null
-  (syntax-rules ()
-    ((_ cond body ...)
-     (if cond
-         (begin body ...)
-         (list)))))
+(define (print-abridged object)
+  (if (> (length object) 5)
+      (begin (? "(")
+             (map (lambda (e)
+                    (? e) (? " "))
+                  (take-5 object))
+             (when (> (length object) 5)
+               (? "[...and ") (? (- (length object) 5)) (? " more]"))
+             (? ")"))
+      (? object)))
 
 (define-checked (to-string-with object (proc procedure?)) => (string?)
   (call-with-port (open-output-string)
@@ -164,17 +89,12 @@
 ;;; inspect-properties
 
 (define (object-properties object)
-  ;; hash-by-identity should be fine:
-  ;; https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html#hashCode--
-  ;; As much as is reasonably practical, the hashCode method defined
-  ;; by class Object does return distinct integers for distinct
-  ;; objects. (This is typically implemented by converting the
-  ;; internal address of the object into an integer, but this
-  ;; implementation technique is not required by the Java™ programming
-  ;; language.)
+  ;; hash-by-identity should be a good enough approximation because
+  ;; the current implementation of hash-by-identity takes object’s
+  ;; address modulo fixnum size. It’s fine.
   `((id ,(hash-by-identity object))
     (location ,(hash-by-identity object))
-    (type ,(prettify-type (object:getClass)))
+    (size ,(##sys#size object))
     (write ,(to-string-with object write))
     (display ,(to-string-with object display))))
 
@@ -190,16 +110,25 @@
                                 (zero? 0)
                                 (positive? 1)))))
     (real-base 2)
-    ;; Kawa encodes flonums as doubles
+    ;; Chibi encodes flonums as double-s
     (real-precision 53)
     ,@(when/null (and (integer? object)
+                      (exact? object))
+                 `((integer-length ,(integer-length object))))
+    ,@(when/null (and (integer? object)
+                      (exact? object)
                       (<= object #x10FFFF))
                  `((integer->char ,(integer->char object))))
+    ;; integer-object seems to be generally impossible:
+    ;; https://github.com/ashinn/chibi-scheme/issues/1136
     (display-2 ,(number->string object 2))
     (display-8 ,(number->string object 8))
     (display-16 ,(number->string object 16))))
 
 (define-checked (boolean-properties (object boolean?))
+  ;; sexp.h has these, but I daren’t go there:
+  ;; #define SEXP_FALSE  SEXP_MAKE_IMMEDIATE(0) /* 14 0x0e */
+  ;; #define SEXP_TRUE   SEXP_MAKE_IMMEDIATE(1) /* 30 0x1e */
   `((boolean->integer ,(if object 1 0))))
 
 (define-checked (pair-properties (object pair?))
@@ -233,6 +162,10 @@
 
 (define-checked (symbol-properties (object symbol?))
   `((symbol->string ,(symbol->string object))
+    (symbol-interned? ,(##sys#interned-symbol? object))
+    (when/null
+     (not (null? (##sys#slot object 2)))
+     `((symbol-plist ,(##sys#slot object 2))))
     ;; That’s crude and likely quite broken, but whatever
     ,@(call/cc
        (lambda (k)
@@ -240,7 +173,7 @@
              (lambda (e)
                (k '()))
            (lambda _
-             `((symbol-value ,(eval object)))))))))
+             `((symbol-value ,(eval object (interaction-environment))))))))))
 
 (define-checked (char-category (c char?))
   (cond
@@ -274,6 +207,8 @@
     (string->utf8 ,(string->utf8 object))
     (string->number ,(string->number object))
     (string-length ,(string-length object))
+    (string-byte-length
+     ,(bytevector-length (string->utf8 object)))
     (file-exists? ,(file-exists? object))
     ,@(map (cut list <> <>)
            (iota (string-length object))
@@ -285,6 +220,15 @@
            (iota (vector-length object))
            (vector->list object))))
 
+(define-checked (bytevector-properties (object bytevector?))
+  `(,@(when/null (false-if-error (utf8->string object))
+                 `((utf8->string ,(utf8->string object))))
+    ,@(let loop ((idx 0))
+        (if (>= idx (bytevector-length object))
+            '()
+            (cons (list idx (bytevector-u8-ref object idx))
+                  (loop (+ 1 idx)))))))
+
 (define-checked (port-properties (object port?))
   `((port-open? ,(if (input-port? object)
                      (input-port-open? object)
@@ -293,6 +237,7 @@
     (output-port? ,(output-port? object))
     (textual-port? ,(textual-port? object))
     (binary-port? ,(binary-port? object))
+    (port-encoding ,(##sys#slot object 15))
     (port-direction ,(cond
                       ((and (input-port? object)
                             (output-port? object))
@@ -301,71 +246,45 @@
                        'input)
                       ((output-port? object)
                        'output)))
-    (port-type ,(if (textual-port? object)
-                    'textual
-                    'binary))
-    ,@(when/null (input-port? object)
-                 `((port-line ,(port-line object))
-                   (port-column ,(port-column object))))
-    #;
+    (port-type ,(##sys#slot object 14))
+    ,@(when/null (##sys#slot object 3)
+                 `((port-file ,(##sys#slot object 3))))
+    (port-line ,(##sys#slot object 4))
     ,@(when/null (and (output-port? object)
                       (false-if-error (get-output-string object)))
                  `((get-output-string ,(get-output-string object))))
-    #;
     ,@(when/null (and (output-port? object)
                       (false-if-error (get-output-bytevector object)))
                  `((get-output-bytevector ,(get-output-bytevector object))))))
 
+(define-checked (procedure-name (proc procedure?)) => (symbol?)
+  (let ((proc-info (procedure-information proc)))
+    (car proc-info)))
+
 (define-checked (procedure-arity-191 object)
-  (receive (arity variadic?)
-      (procedure-arg-num object)
+  (let* ((proc-info (procedure-information object))
+         (arity (length+ (cdr proc-info)))
+         (variadic? (dotted-list? proc-info)))
     (- (* (if variadic? -1 1)
           (if (zero? arity)
               1
               (expt 2 arity)))
        (if variadic? 1 0))))
 
-
-;; Adapted from geiser-chibi <https://codeberg.org/geiser/chibi>
-(define-checked (procedure-arglist (proc procedure?))
-  (receive (arity variadic?)
-      (procedure-arg-num object)
-    (let loop ((num arity)
-               (var? variadic?))
-      (cond
-       ((and (zero? num) var?)
-        '_)
-       ((zero? num)
-        '())
-       (else
-        (cons '_ (loop (- num 1) var?)))))))
-
 (define-checked (procedure-properties (object procedure?))
-  `((procedure-name ,(procedure-name object))
-    (procedure-arity-mask ,(procedure-arity-191 object))
-    ,@(when/null (procedure-arglist object)
-                 `((procedure-arglists ,(list (procedure-arglist object)))))
-    ;; ,@(when/null (and (not (opcode? object))
-    ;;                   (positive?
-    ;;                    (vector-length
-    ;;                     (bytecode-source
-    ;;                      (procedure-code object)))))
-    ;;              (let ((source (vector-ref (bytecode-source
-    ;;                                         (procedure-code object))
-    ;;                                        0)))
-    ;;                (match source
-    ;;                  ((x file . line)
-    ;;                   `((procedure-file ,file)
-    ;;                     (procedure-line ,line))))))
-    ,@(when/null (procedure-arg-types object)
-                 `((procedure-argument-types ,(procedure-arg-types object))))))
+  ;; TODO: type introspection
+  (let ((proc-info (procedure-information object)))
+    `((procedure-name ,(procedure-name object))
+      (procedure-arity-mask ,(procedure-arity-191 object))
+      (procedure-arglists ,(list (cdr proc-info))))))
 
 (define (record-properties object)
-  `((record-type ,(object:getClass))
-    ,@(let ((rtd (record-type-descriptor object)))
-        (map (lambda (name)
-               (list name ((record-accessor rtd name) object)))
-             (record-type-field-names rtd)))))
+  `((record-type ,(##sys#slot object 0))
+    ,@(do ((idx 1 (+ 1 idx))
+           (slots '()
+                  (cons `(,(- idx 1) ,(##sys#slot object idx))
+                        slots)))
+          ((>= idx (##sys#size object)) (reverse! slots)))))
 
 (define-checked (error-object-properties (object error-object?))
   `((error-object-message ,(error-object-message object))
@@ -373,79 +292,47 @@
 
 (define-checked (hash-properties (object hash-table?))
   `((hash-table-equivalence-function
-     ,(let ((eq (hash-table-equivalence-function object)))
-        (string->symbol eq:name)))
+     ,(procedure-name (hash-table-equivalence-function object)))
     (hash-table-hash-function
-     ,(let ((hsh (hash-table-hash-function object)))
-        (string->symbol hsh:name)))
+     ,(procedure-name (hash-table-hash-function object)))
     (hash-table-size ,(hash-table-size object))
     ,@(map (lambda (entry)
              (list (car entry) (cdr entry)))
            (hash-table->alist object))))
 
 (define-checked (numeric-vector-properties object)
-  (check-case
-   object
-   (s8vector?
-    `((vector-tag s8)
-      (s8vector-length ,(length object))
-      ,@(map (lambda (idx)
-               (list idx (vector-ref object idx)))
-             (iota (length object)))))
-   (u8vector?
-    `((vector-tag u8)
-      (u8vector-length ,(length object))
-      ,@(map (lambda (idx)
-               (list idx (vector-ref object idx)))
-             (iota (length object)))))
-   (s16vector?
-    `((vector-tag s16)
-      (s16vector-length ,(length object))
-      ,@(map (lambda (idx)
-               (list idx (vector-ref object idx)))
-             (iota (length object)))))
-   (u16vector?
-    `((vector-tag u16)
-      (u16vector-length ,(length object))
-      ,@(map (lambda (idx)
-               (list idx (vector-ref object idx)))
-             (iota (length object)))))
-   (s32vector?
-    `((vector-tag s32)
-      (s32vector-length ,(length object))
-      ,@(map (lambda (idx)
-               (list idx (vector-ref object idx)))
-             (iota (length object)))))
-   (u32vector?
-    `((vector-tag u32)
-      (u32vector-length ,(length object))
-      ,@(map (lambda (idx)
-               (list idx (vector-ref object idx)))
-             (iota (length object)))))
-   (s64vector?
-    `((vector-tag s64)
-      (s64vector-length ,(length object))
-      ,@(map (lambda (idx)
-               (list idx (vector-ref object idx)))
-             (iota (length object)))))
-   (u64vector?
-    `((vector-tag u64)
-      (u64vector-length ,(length object))
-      ,@(map (lambda (idx)
-               (list idx (vector-ref object idx)))
-             (iota (length object)))))
-   (f32vector?
-    `((vector-tag f32)
-      (f32vector-length ,(length object))
-      ,@(map (lambda (idx)
-               (list idx (vector-ref object idx)))
-             (iota (length object)))))
-   (f64vector?
-    `((vector-tag f64)
-      (f64vector-length ,(length object))
-      ,@(map (lambda (idx)
-               (list idx (vector-ref object idx)))
-             (iota (length object)))))))
+  (let ((build (lambda (tag length-proc length-proc-name ref-proc)
+                 `((vector-tag ,tag)
+                   (,length-proc-name ,(length-proc object))
+                   ,@(map (lambda (idx)
+                            (list idx (ref-proc object idx)))
+                          (iota (length-proc object)))))))
+    (check-case
+     object
+     (s8vector?
+      (build 's8 s8vector-length 's8vector-length s8vector-ref))
+     (u8vector?
+      (build 'u8 u8vector-length 'u8vector-length u8vector-ref))
+     (s16vector?
+      (build 's16 s16vector-length 's16vector-length s16vector-ref))
+     (u16vector?
+      (build 'u16 u16vector-length 'u16vector-length u16vector-ref))
+     (s32vector?
+      (build 's32 s32vector-length 's32vector-length s32vector-ref))
+     (u32vector?
+      (build 'u32 u32vector-length 'u32vector-length u32vector-ref))
+     (s64vector?
+      (build 's64 s64vector-length 's64vector-length s64vector-ref))
+     (u64vector?
+      (build 'u64 u64vector-length 'u64vector-length u64vector-ref))
+     (f32vector?
+      (build 'f32 f32vector-length 'f32vector-length f32vector-ref))
+     (f64vector?
+      (build 'f64 f64vector-length 'f64vector-length f64vector-ref))
+     (c64vector?
+      (build 'c64 c64vector-length 'c64vector-length c64vector-ref))
+     (c128vector?
+      (build 'c128 c128vector-length 'c128vector-length c128vector-ref)))))
 
 (define-checked (char-set-properties (object char-set?))
   `((char-set-size ,(char-set-size object))
@@ -498,6 +385,7 @@
             (char? char-properties)
             (string? string-properties)
             (vector? vector-properties)
+            (bytevector? bytevector-properties)
             (port? port-properties)
             (procedure? procedure-properties)
             (error-object? error-object-properties)
@@ -513,7 +401,7 @@
             (f32vector? numeric-vector-properties)
             (f64vector? numeric-vector-properties)
             (char-set? char-set-properties)
-            (record? record-properties))
+            (else record-properties))
            object)))
 
 ;;; inspect-property
@@ -531,8 +419,8 @@
     (check-case
      object
      (rational? (? "Number ") (? object)
-                (when (assoc-ref 'integer-length props)
-                  (? " (") (? (assoc-ref 'integer-length props)) (? " bits)"))
+                (and-let* ((len (assoc-ref 'integer-length props)))
+                  (? " (") (? len) (? " bits)"))
                 (? " #b") (? (assoc-ref 'display-2 props))
                 (? " #o") (? (assoc-ref 'display-8 props))
                 (? " #x") (? (assoc-ref 'display-16 props))
@@ -545,11 +433,30 @@
     (? "Boolean ") (? (if object "#true" "#false"))
     (? " (") (? (assoc-ref 'boolean->integer props)) (? ")")))
 
+(define-checked (pair-describe (object pair?))
+  (let ((props (pair-properties object)))
+    (? "Pair ")
+    (if (circular-list? object)
+        (? "(circular)")
+        (let ((first-five (take-5 object)))
+          (? "(")
+          (? (car first-five))
+          (map (lambda (elem)
+                 (? " ")
+                 (? elem))
+               (cdr first-five))
+          (when (> (length+ object) 5)
+            (? " [...and ") (? (- (length+ object) 5)) (? " more]"))
+          (and-let* ((dl (assoc-ref 'dotted-last props)))
+            (? " . ")
+            (? dl))
+          (? ")")))))
+
 (define-checked (symbol-describe (object symbol?))
   (let ((props (symbol-properties object)))
     (? "Symbol ") (? object)
-    (when (assoc-ref 'symbol-value props)
-      (? " = ") (? (assoc-ref 'symbol-value props)))))
+    (and-let* ((val (assoc-ref 'symbol-value props)))
+      (? " = ") (? val))))
 
 (define-checked (char-describe (object char?))
   (let ((props (char-properties object)))
@@ -564,23 +471,134 @@
     (when (> (string-length object) 10)
       (? "[...and ") (? (- (string-length object) 10)) (? " more]"))
     (? "\"")
-    (when (assoc-ref 'string-byte-length props)
-      (? " (") (? (assoc-ref 'string-byte-length props)) (? " bytes)"))))
+    (and-let* ((len (assoc-ref 'string-byte-length props)))
+      (? " (") (? len) (? " bytes)"))))
 
 (define-checked (vector-describe (object vector?))
   (let ((props (vector-properties object)))
     (? "Vector #")
-    (if (> (vector-length object) 5)
-        (begin (? "(")
-               (map (lambda (e)
-                      (? e) (? " "))
-                    (take-5 (vector->list object)))
-               (when (> (vector-length object) 5)
-                 (? "[...and ") (? (- (vector-length object) 5)) (? " more]"))
-               (? ")"))
-        (? (vector->list object)))
+    (print-abridged (vector->list object))
     (when (assoc-ref 'vector->string props)
       (? " (") (write (assoc-ref 'vector->string props)) (? ")"))))
+
+(define-checked (bytevector->list (object bytevector?)) => (list?)
+  (let loop ((idx 0))
+    (if (>= idx (bytevector-length object))
+        '()
+        (cons (bytevector-u8-ref object idx) (loop (+ 1 idx))))))
+
+(define-checked (bytevector-describe (object bytevector?))
+  (let ((props (bytevector-properties object)))
+    (? "Bytevector #u8")
+    (print-abridged (bytevector->list object))
+    (when (assoc-ref 'utf8->string props)
+      (? " (") (write (assoc-ref 'utf8->string props)) (? ")"))))
+
+(define-checked (procedure-describe (object procedure?))
+  (let ((props (procedure-properties object)))
+    (begin (? "Procedure ")
+           (? (or (assoc-ref 'procedure-name props)
+                  "λ"))
+           (and-let* ((arglists (assoc-ref 'procedure-arglists props)))
+             (? " ")
+             (? (fold-right (lambda (arglist acc)
+                              (cons* arglist (string->symbol "|") acc))
+                            (car arglists)
+                            (cdr arglists))))
+           (when (or (assoc-ref 'procedure-argument-types props)
+                     (assoc-ref 'procedure-return-types props))
+             (newline)
+             (? (assoc-ref 'procedure-argument-types props))
+             (? " → ")
+             (? (assoc-ref 'procedure-return-types props))))))
+
+(define-checked (error-object-describe (object error-object?))
+  (begin (? "Error object ")
+         (write (error-object-message object))
+         (? " ")
+         (? (error-object-irritants object))))
+
+(define-checked (hash-describe (object hash-table?))
+  (let ((props (hash-properties object)))
+    (? "Hash table [")
+    (? (assoc-ref 'hash-table-equivalence-function props))
+    (? ", ")
+    (? (assoc-ref 'hash-table-size props))
+    (? "]\n")
+    (map (lambda (pair)
+           (? "  ") (? pair) (newline))
+         (take-5 (hash-table->alist object)))))
+
+(define-checked (port-describe (object port?))
+  (let ((props (port-properties object)))
+    (if (assoc-ref 'port-open? props)
+        (? "Open ")
+        (? "Closed "))
+    (case (assoc-ref 'port-direction props)
+      ((input) (? "Input "))
+      ((output) (? "Output "))
+      ((both) (? "Bidirectional ")))
+    (? "port ")
+    (? object)))
+
+(define-checked (numeric-vector-describe object)
+  (let ((describe (lambda (tag length-proc length-proc-name list-proc ref-proc)
+                    (? (string-upcase (symbol->string tag)))
+                    (? " Vector [")
+                    (? (length-proc object))
+                    (? "] ")
+                    (? "#")
+                    (? tag)
+                    (print-abridged (list-proc object)))))
+    (check-case
+     object
+     (s8vector?
+      (describe 's8 s8vector-length 's8vector-length s8vector->list s8vector-ref))
+     (u8vector?
+      (describe 'u8 u8vector-length 'u8vector-length u8vector->list u8vector-ref))
+     (s16vector?
+      (describe 's16 s16vector-length 's16vector-length s16vector->list s16vector-ref))
+     (u16vector?
+      (describe 'u16 u16vector-length 'u16vector-length u16vector->list u16vector-ref))
+     (s32vector?
+      (describe 's32 s32vector-length 's32vector-length s32vector->list s32vector-ref))
+     (u32vector?
+      (describe 'u32 u32vector-length 'u32vector-length u32vector->list u32vector-ref))
+     (s64vector?
+      (describe 's64 s64vector-length 's64vector-length s64vector->list s64vector-ref))
+     (u64vector?
+      (describe 'u64 u64vector-length 'u64vector-length u64vector->list u64vector-ref))
+     (f32vector?
+      (describe 'f32 f32vector-length 'f32vector-length f32vector->list f32vector-ref))
+     (f64vector?
+      (describe 'f64 f64vector-length 'f64vector-length f64vector->list f64vector-ref)))))
+
+(define-checked (char-set-describe (object char-set?))
+  (let ((props (char-set-properties object)))
+    (? "Char set ")
+    (when (assoc-ref 'char-set-name props)
+      (? (assoc-ref 'char-set-name props))
+      (? " "))
+    (? "{")
+    (? (list->string (take-10 (char-set->list object))))
+    (when (> (char-set-size object) 10)
+      (? "..."))
+    (? "}")))
+
+(define-checked (record-describe object)
+  (let ((props (record-properties object)))
+    (? "Record ")
+    (? (assoc-ref 'record-type props))
+    (? " ")
+    (? object)
+    (newline)
+    (map (lambda (prop)
+           (? "  ")
+           (? (car prop))
+           (? ": ")
+           (? (cadr prop))
+           (newline))
+         (cdr props))))
 
 (define inspect-describe
   (case-lambda-checked
@@ -591,24 +609,26 @@
         object
         (number? number-describe)
         (boolean? boolean-describe)
-        (pair? pair-properties)
+        (pair? pair-describe)
         (symbol? symbol-describe)
         (char? char-describe)
         (string? string-describe)
         (vector? vector-describe)
-        (procedure? procedure-properties)
-        (error-object? error-object-properties)
-        (hash-table? hash-properties)
-        (s8vector? numeric-vector-properties)
-        (u8vector? numeric-vector-properties)
-        (s16vector? numeric-vector-properties)
-        (u16vector? numeric-vector-properties)
-        (s32vector? numeric-vector-properties)
-        (u32vector? numeric-vector-properties)
-        (s64vector? numeric-vector-properties)
-        (u64vector? numeric-vector-properties)
-        (f32vector? numeric-vector-properties)
-        (f64vector? numeric-vector-properties)
-        (char-set? char-set-properties)
-        (else record-properties))
-       object port)))))
+        (bytevector? bytevector-describe)
+        (port? port-describe)
+        (procedure? procedure-describe)
+        (error-object? error-object-describe)
+        (hash-table? hash-describe)
+        (s8vector? numeric-vector-describe)
+        (u8vector? numeric-vector-describe)
+        (s16vector? numeric-vector-describe)
+        (u16vector? numeric-vector-describe)
+        (s32vector? numeric-vector-describe)
+        (u32vector? numeric-vector-describe)
+        (s64vector? numeric-vector-describe)
+        (u64vector? numeric-vector-describe)
+        (f32vector? numeric-vector-describe)
+        (f64vector? numeric-vector-describe)
+        (char-set? char-set-describe)
+        (else record-describe))
+       object)))))
