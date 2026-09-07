@@ -511,15 +511,13 @@ will not appear in the final SRFI.</p>
 </p>
 
 <dl>
-  <dt> unbox → object
-  <dd> The value inside the box.
+  <dt> unbox → [object]
+  <dd> The values inside the box.
+    In case there’s only one value, it’s still wrapped in a list.
+    To support <a href="https://srfi.schemers.org/srfi-195/srfi-195.html">SRFI 195: Multiple-value boxes</a>.
 </dl>
 
-<p>
-  Related SRFIs, like <a href="https://srfi.schemers.org/srfi-195/srfi-195.html">SRFI 195: Multiple-value boxes</a>
-  and <a href="https://srfi.schemers.org/srfi-189/srfi-189.html">SRFI 189: Maybe and Either</a> are not mentioned here,
-  but may as well be supported by implementations providing them.
-</p>
+
 
 <h4 id="spec--properties--char-set">Character set (char-set?) properties</h4>
 
