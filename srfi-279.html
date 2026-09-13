@@ -388,7 +388,7 @@ will not appear in the final SRFI.</p>
   <dt> procedure-arity-mask → integer, procedure-arity → arity
   <dd> As per <a href="https://srfi.schemers.org/srfi-191/srfi-191.html#Specification">SRFI 191</a> and <a href="https://srfi.schemers.org/srfi-102/srfi-102.html#Specification">SRFI 102</a> respectively.
     While both of these were withdrawn, they serve and important purpose: allowing basic yet essential introspection of procedures.
-  <dt> procedure-arglists → [pair | symbol]
+  <dt> procedure-arglists → [null | pair | symbol]
   <dd> List of possible argument lists of the procedure.
     Procedures can be defined via <a href="https://standards.scheme.org/r7rs-html5/index.html#case-lambda">case-lambda</a> and thus have multiple arities / arglists.
     The symbol value can happen if the procedure accepts rest argument only,
