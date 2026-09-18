@@ -90,6 +90,7 @@
      (include "guile.scm"))
     (chicken
      (import (chicken base))
+     (import (chicken bitwise))
      (import (srfi 1)) ;; List library
      (import (srfi 4)) ;; Numeric vectors
      (import (srfi 26)) ;; cut / cute
