@@ -91,10 +91,8 @@
     (chicken
      (import (chicken base))
      (import (srfi 1)) ;; List library
-     (import (srfi 14)) ;; Char sets
-     (import (srfi 69)) ;; Hash tables
-     (import (srfi 151)) ;; Integers as bits
-     (import (srfi 160 base)) ;; Numeric vectors
+     (import (srfi 4)) ;; Numeric vectors
+     (import (srfi 26)) ;; cut / cute
      (include "chicken.scm"))
     (else
      (import (srfi 1))   ;; List library
