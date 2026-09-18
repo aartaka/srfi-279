@@ -287,14 +287,15 @@
 
 (define (hash-table->alist* object)
   (let* ((vec (##sys#slot object 1)))
-    (map (lambda (i)
-           (let ((bucket (##sys#slot vec i)))
-             (list (##sys#slot bucket 0) (##sys#slot bucket 1))))
-         (iota (##sys#size vec)))))
+    (fold append '()
+          (map (lambda (i)
+                 (map (lambda (bucket)
+                        (list (##sys#slot bucket 0) (##sys#slot bucket 1)))
+                      (##sys#slot vec i)))
+               (iota (##sys#size vec))))))
 
 (define (hash-properties object)
-  `((hash-table-equivalence-function
-     ,(##sys#slot object 3))
+  `((hash-table-equivalence-function ,(procedure-name (##sys#slot object 3)))
     (hash-table-size ,(##sys#slot object 2))
     ,@(hash-table->alist* object)))
 
