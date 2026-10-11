@@ -22,18 +22,6 @@
 ;;; FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 ;;; OTHER DEALINGS IN THE SOFTWARE.
 
-(import (scheme base)
-        (scheme write)
-        (scheme char)
-        (scheme complex)
-        (scheme file)
-        (scheme eval)
-        (scheme case-lambda))
-
-(import (srfi 1)) ;; List library
-(import (srfi 4))
-(import (srfi 26))
-
 (define-syntax when/null
   (syntax-rules ()
     ((_ cond body ...)
@@ -107,9 +95,6 @@
     (real-base 2)
     ;; Chibi encodes flonums as double-s
     (real-precision 53)
-    ,@(when/null (and (integer? object)
-                      (exact? object))
-                 `((integer-length ,(integer-length object))))
     ,@(when/null (and (integer? object)
                       (exact? object)
                       (<= object #x10FFFF))
@@ -249,24 +234,30 @@
 
 (define (procedure-name proc)
   (let ((proc-info (procedure-information proc)))
-    (car proc-info)))
+    (if (pair? proc-info)
+        (car proc-info)
+        proc-info)))
 
 (define (procedure-arity-191 object)
-  (let* ((proc-info (procedure-information object))
-         (arity (length+ (cdr proc-info)))
-         (variadic? (dotted-list? proc-info)))
-    (- (* (if variadic? -1 1)
-          (if (zero? arity)
-              1
-              (expt 2 arity)))
-       (if variadic? 1 0))))
+  (let* ((proc-info (procedure-information object)))
+    (if (not (pair? proc-info))
+        -1
+        (let ((arity (length+ (cdr proc-info)))
+              (variadic? (dotted-list? proc-info)))
+          (- (* (if variadic? -1 1)
+                (if (zero? arity)
+                    1
+                    (expt 2 arity)))
+             (if variadic? 1 0))))))
 
 (define (procedure-properties object)
   ;; TODO: type introspection
   (let ((proc-info (procedure-information object)))
     `((procedure-name ,(procedure-name object))
       (procedure-arity-mask ,(procedure-arity-191 object))
-      (procedure-arglists ,(list (cdr proc-info))))))
+      (procedure-arglists ,(if (pair? proc-info)
+                               (list (cdr proc-info))
+                               '())))))
 
 (define (record-properties object)
   `((record-type ,(##sys#slot object 0))
@@ -368,13 +359,12 @@
     (cond
      ((rational? object)
       (? "Number ") (? object)
-      (and-let* ((len (assoc-ref 'integer-length props)))
-        (? " (") (? len) (? " bits)"))
-      (? " #b") (? (assoc-ref 'display-2 props))
-      (? " #o") (? (assoc-ref 'display-8 props))
-      (? " #x") (? (assoc-ref 'display-16 props))
+      (when (integer? object)
+        (? " #b") (? (assoc-ref 'display-2 props))
+        (? " #o") (? (assoc-ref 'display-8 props))
+        (? " #x") (? (assoc-ref 'display-16 props)))
       (when (<= 0 object 1)
-        (? " ") (? (* object 100)) (? "%")))
+        (? " ") (? (exact->inexact (* object 100))) (? "%")))
      (else (? "Number ") (? object)))))
 
 (define (boolean-describe object)
@@ -448,7 +438,8 @@
     (begin (? "Procedure ")
            (? (or (assoc-ref 'procedure-name props)
                   "λ"))
-           (and-let* ((arglists (assoc-ref 'procedure-arglists props)))
+           (and-let* ((arglists (assoc-ref 'procedure-arglists props))
+                      (_ (pair? arglists)))
              (? " ")
              (? (fold-right (lambda (arglist acc)
                               (cons* arglist (string->symbol "|") acc))
