@@ -114,16 +114,11 @@
                       (exact? object)
                       (<= object #x10FFFF))
                  `((integer->char ,(integer->char object))))
-    ;; integer-object seems to be generally impossible:
-    ;; https://github.com/ashinn/chibi-scheme/issues/1136
     (display-2 ,(number->string object 2))
     (display-8 ,(number->string object 8))
     (display-16 ,(number->string object 16))))
 
 (define (boolean-properties object)
-  ;; sexp.h has these, but I daren’t go there:
-  ;; #define SEXP_FALSE  SEXP_MAKE_IMMEDIATE(0) /* 14 0x0e */
-  ;; #define SEXP_TRUE   SEXP_MAKE_IMMEDIATE(1) /* 30 0x1e */
   `((boolean->integer ,(if object 1 0))))
 
 (define (pair-properties object)
